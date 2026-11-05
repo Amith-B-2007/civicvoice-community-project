@@ -1,0 +1,16 @@
+{
+  "name": "digital-suggestion-box",
+  "version": "1.0.0",
+  "description": "Digital Suggestion Box for Local Governance: citizens submit suggestions and feedback to their local governing body.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lan": "node server.js --lan",
+    "seed": "node seed.js",
+    "reset-admin": "node server.js --reset-admin"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

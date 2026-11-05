@@ -1,0 +1,77 @@
+{
+  "siteName": "CivicVoice",
+  "tagline": {
+    "en": "Digital Suggestion Box for Local Governance",
+    "kn": "ಸ್ಥಳೀಯ ಆಡಳಿತಕ್ಕಾಗಿ ಡಿಜಿಟಲ್ ಸಲಹಾ ಪೆಟ್ಟಿಗೆ",
+    "hi": "स्थानीय शासन के लिए डिजिटल सुझाव पेटी"
+  },
+  "region": {
+    "en": "Karnataka",
+    "kn": "ಕರ್ನಾಟಕ",
+    "hi": "कर्नाटक"
+  },
+  "bodyName": {
+    "en": "your local council",
+    "kn": "ನಿಮ್ಮ ಸ್ಥಳೀಯ ಸಂಸ್ಥೆ",
+    "hi": "आपकी स्थानीय परिषद"
+  },
+  "port": 3000,
+  "publicUrl": "",
+  "overdueDays": 7,
+  "map": {
+    "center": [15.0, 76.2],
+    "zoom": 7
+  },
+  "districts": [
+    { "id": "bagalkote", "center": [16.18, 75.70], "label": { "en": "Bagalkote", "kn": "ಬಾಗಲಕೋಟೆ", "hi": "बागलकोट" }, "aliases": ["bagalkot"] },
+    { "id": "ballari", "center": [15.14, 76.92], "label": { "en": "Ballari", "kn": "ಬಳ್ಳಾರಿ", "hi": "बल्लारी" }, "aliases": ["bellary"] },
+    { "id": "belagavi", "center": [15.85, 74.50], "label": { "en": "Belagavi", "kn": "ಬೆಳಗಾವಿ", "hi": "बेलगावी" }, "aliases": ["belgaum"] },
+    { "id": "bengaluru-rural", "center": [13.29, 77.54], "label": { "en": "Bengaluru Rural", "kn": "ಬೆಂಗಳೂರು ಗ್ರಾಮಾಂತರ", "hi": "बेंगलुरु ग्रामीण" }, "aliases": ["bangalore rural"] },
+    { "id": "bengaluru-urban", "center": [12.97, 77.59], "label": { "en": "Bengaluru Urban", "kn": "ಬೆಂಗಳೂರು ನಗರ", "hi": "बेंगलुरु शहरी" }, "aliases": ["bangalore urban", "bangalore", "bengaluru"] },
+    { "id": "bidar", "center": [17.91, 77.52], "label": { "en": "Bidar", "kn": "ಬೀದರ್", "hi": "बीदर" } },
+    { "id": "chamarajanagar", "center": [11.92, 76.94], "label": { "en": "Chamarajanagar", "kn": "ಚಾಮರಾಜನಗರ", "hi": "चामराजनगर" }, "aliases": ["chamrajnagar"] },
+    { "id": "chikkaballapura", "center": [13.43, 77.73], "label": { "en": "Chikkaballapura", "kn": "ಚಿಕ್ಕಬಳ್ಳಾಪುರ", "hi": "चिक्कबल्लापुर" }, "aliases": ["chikballapur"] },
+    { "id": "chikkamagaluru", "center": [13.32, 75.77], "label": { "en": "Chikkamagaluru", "kn": "ಚಿಕ್ಕಮಗಳೂರು", "hi": "चिक्कमगलुरु" }, "aliases": ["chikmagalur"] },
+    { "id": "chitradurga", "center": [14.23, 76.40], "label": { "en": "Chitradurga", "kn": "ಚಿತ್ರದುರ್ಗ", "hi": "चित्रदुर्ग" } },
+    { "id": "dakshina-kannada", "center": [12.91, 74.86], "label": { "en": "Dakshina Kannada", "kn": "ದಕ್ಷಿಣ ಕನ್ನಡ", "hi": "दक्षिण कन्नड़" }, "aliases": ["south canara", "mangaluru", "mangalore"] },
+    { "id": "davanagere", "center": [14.46, 75.92], "label": { "en": "Davanagere", "kn": "ದಾವಣಗೆರೆ", "hi": "दावणगेरे" }, "aliases": ["davangere"] },
+    { "id": "dharwad", "center": [15.46, 75.01], "label": { "en": "Dharwad", "kn": "ಧಾರವಾಡ", "hi": "धारवाड़" }, "aliases": ["hubballi", "hubli"] },
+    { "id": "gadag", "center": [15.43, 75.63], "label": { "en": "Gadag", "kn": "ಗದಗ", "hi": "गदग" } },
+    { "id": "hassan", "center": [13.01, 76.10], "label": { "en": "Hassan", "kn": "ಹಾಸನ", "hi": "हासन" } },
+    { "id": "haveri", "center": [14.79, 75.40], "label": { "en": "Haveri", "kn": "ಹಾವೇರಿ", "hi": "हावेरी" } },
+    { "id": "kalaburagi", "center": [17.33, 76.83], "label": { "en": "Kalaburagi", "kn": "ಕಲಬುರಗಿ", "hi": "कलबुर्गी" }, "aliases": ["gulbarga"] },
+    { "id": "kodagu", "center": [12.42, 75.74], "label": { "en": "Kodagu", "kn": "ಕೊಡಗು", "hi": "कोडगु" }, "aliases": ["coorg", "madikeri"] },
+    { "id": "kolar", "center": [13.14, 78.13], "label": { "en": "Kolar", "kn": "ಕೋಲಾರ", "hi": "कोलार" } },
+    { "id": "koppal", "center": [15.35, 76.15], "label": { "en": "Koppal", "kn": "ಕೊಪ್ಪಳ", "hi": "कोप्पल" } },
+    { "id": "mandya", "center": [12.52, 76.90], "label": { "en": "Mandya", "kn": "ಮಂಡ್ಯ", "hi": "मंड्या" } },
+    { "id": "mysuru", "center": [12.30, 76.64], "label": { "en": "Mysuru", "kn": "ಮೈಸೂರು", "hi": "मैसूरु" }, "aliases": ["mysore"] },
+    { "id": "raichur", "center": [16.20, 77.36], "label": { "en": "Raichur", "kn": "ರಾಯಚೂರು", "hi": "रायचूर" } },
+    { "id": "ramanagara", "center": [12.72, 77.28], "label": { "en": "Ramanagara", "kn": "ರಾಮನಗರ", "hi": "रामनगर" }, "aliases": ["ramanagaram", "bengaluru south"] },
+    { "id": "shivamogga", "center": [13.93, 75.57], "label": { "en": "Shivamogga", "kn": "ಶಿವಮೊಗ್ಗ", "hi": "शिवमोग्गा" }, "aliases": ["shimoga"] },
+    { "id": "tumakuru", "center": [13.34, 77.10], "label": { "en": "Tumakuru", "kn": "ತುಮಕೂರು", "hi": "तुमकुरु" }, "aliases": ["tumkur"] },
+    { "id": "udupi", "center": [13.34, 74.75], "label": { "en": "Udupi", "kn": "ಉಡುಪಿ", "hi": "उडुपी" } },
+    { "id": "uttara-kannada", "center": [14.81, 74.13], "label": { "en": "Uttara Kannada", "kn": "ಉತ್ತರ ಕನ್ನಡ", "hi": "उत्तर कन्नड़" }, "aliases": ["north canara", "karwar"] },
+    { "id": "vijayanagara", "center": [15.27, 76.39], "label": { "en": "Vijayanagara", "kn": "ವಿಜಯನಗರ", "hi": "विजयनगर" }, "aliases": ["hosapete", "hospet"] },
+    { "id": "vijayapura", "center": [16.83, 75.71], "label": { "en": "Vijayapura", "kn": "ವಿಜಯಪುರ", "hi": "विजयपुरा" }, "aliases": ["bijapur"] },
+    { "id": "yadgir", "center": [16.77, 77.14], "label": { "en": "Yadgir", "kn": "ಯಾದಗಿರಿ", "hi": "यादगीर" }, "aliases": ["yadagiri"] }
+  ],
+  "departments": [
+    { "id": "engineering", "label": { "en": "Engineering (Roads & Works)", "kn": "ಎಂಜಿನಿಯರಿಂಗ್ ವಿಭಾಗ", "hi": "इंजीनियरिंग विभाग" } },
+    { "id": "water", "label": { "en": "Water Supply", "kn": "ನೀರು ಸರಬರಾಜು ವಿಭಾಗ", "hi": "जल आपूर्ति विभाग" } },
+    { "id": "health", "label": { "en": "Health & Sanitation", "kn": "ಆರೋಗ್ಯ ಮತ್ತು ನೈರ್ಮಲ್ಯ ವಿಭಾಗ", "hi": "स्वास्थ्य और स्वच्छता विभाग" } },
+    { "id": "electrical", "label": { "en": "Electrical", "kn": "ವಿದ್ಯುತ್ ವಿಭಾಗ", "hi": "विद्युत विभाग" } },
+    { "id": "general", "label": { "en": "General Administration", "kn": "ಸಾಮಾನ್ಯ ಆಡಳಿತ", "hi": "सामान्य प्रशासन" } }
+  ],
+  "categories": [
+    { "id": "roads", "icon": "🛣️", "department": "engineering", "label": { "en": "Roads & Footpaths", "kn": "ರಸ್ತೆಗಳು ಮತ್ತು ಕಾಲುದಾರಿಗಳು", "hi": "सड़कें और फुटपाथ" } },
+    { "id": "water", "icon": "🚰", "department": "water", "label": { "en": "Water Supply", "kn": "ನೀರು ಸರಬರಾಜು", "hi": "जल आपूर्ति" } },
+    { "id": "drainage", "icon": "🌧️", "department": "engineering", "label": { "en": "Drainage & Sewage", "kn": "ಚರಂಡಿ ಮತ್ತು ಒಳಚರಂಡಿ", "hi": "नाली और सीवेज" } },
+    { "id": "waste", "icon": "🗑️", "department": "health", "label": { "en": "Waste & Cleanliness", "kn": "ಕಸ ಮತ್ತು ಸ್ವಚ್ಛತೆ", "hi": "कचरा और सफ़ाई" } },
+    { "id": "lights", "icon": "💡", "department": "electrical", "label": { "en": "Street Lights & Power", "kn": "ಬೀದಿ ದೀಪಗಳು ಮತ್ತು ವಿದ್ಯುತ್", "hi": "स्ट्रीट लाइट और बिजली" } },
+    { "id": "parks", "icon": "🌳", "department": "engineering", "label": { "en": "Parks & Public Spaces", "kn": "ಉದ್ಯಾನಗಳು ಮತ್ತು ಸಾರ್ವಜನಿಕ ಸ್ಥಳಗಳು", "hi": "पार्क और सार्वजनिक स्थान" } },
+    { "id": "transport", "icon": "🚌", "department": "engineering", "label": { "en": "Traffic & Transport", "kn": "ಸಂಚಾರ ಮತ್ತು ಸಾರಿಗೆ", "hi": "यातायात और परिवहन" } },
+    { "id": "safety", "icon": "🛡️", "department": "general", "label": { "en": "Public Safety", "kn": "ಸಾರ್ವಜನಿಕ ಸುರಕ್ಷತೆ", "hi": "सार्वजनिक सुरक्षा" } },
+    { "id": "services", "icon": "🏛️", "department": "general", "label": { "en": "Council Services", "kn": "ಪುರಸಭೆ ಸೇವೆಗಳು", "hi": "परिषद सेवाएँ" } },
+    { "id": "other", "icon": "📌", "department": "general", "label": { "en": "Other", "kn": "ಇತರೆ", "hi": "अन्य" } }
+  ]
+}
