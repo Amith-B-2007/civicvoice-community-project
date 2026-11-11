@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{siteName}} · {{tagline}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main">
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">{{region}}</p>
+        <h1>{{t:home.h1}}</h1>
+        <p class="lead">{{t:home.lead}}</p>
+        <h2 class="action-heading">{{t:home.choose}}</h2>
+        <nav class="action-grid" aria-label="{{t:home.choose}}">
+          <a class="action-tile" href="/submit?type=issue">
+            <span class="action-icon" aria-hidden="true">⚠️</span>
+            <strong>{{t:home.act.issue.t}}</strong>
+            <span>{{t:home.act.issue.d}}</span>
+          </a>
+          <a class="action-tile" href="/submit?type=suggestion">
+            <span class="action-icon" aria-hidden="true">💡</span>
+            <strong>{{t:home.act.suggestion.t}}</strong>
+            <span>{{t:home.act.suggestion.d}}</span>
+          </a>
+          <a class="action-tile" href="/submit?type=feedback">
+            <span class="action-icon" aria-hidden="true">💬</span>
+            <strong>{{t:home.act.feedback.t}}</strong>
+            <span>{{t:home.act.feedback.d}}</span>
+          </a>
+          <a class="action-tile" href="/track">
+            <span class="action-icon" aria-hidden="true">🔎</span>
+            <strong>{{t:home.act.track.t}}</strong>
+            <span>{{t:home.act.track.d}}</span>
+          </a>
+        </nav>
+        <p class="hero-more"><a href="/browse">{{t:home.cta2}} →</a></p>
+      </div>
+      <aside class="hero-panel" aria-label="{{t:home.soFar}}">
+        <h2>{{t:home.soFar}}</h2>
+        <dl id="hero-stats" class="stat-grid">
+          <div class="stat"><dt>{{t:home.stat.shared}}</dt><dd>–</dd></div>
+          <div class="stat"><dt>{{t:home.stat.implemented}}</dt><dd>–</dd></div>
+          <div class="stat"><dt>{{t:home.stat.active}}</dt><dd>–</dd></div>
+          <div class="stat"><dt>{{t:home.stat.votes}}</dt><dd>–</dd></div>
+        </dl>
+        <a class="panel-link" href="/dashboard">{{t:home.dashLink}}</a>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section-tight" id="council" hidden>
+    <div class="container council-grid">
+      <div id="home-poll" class="panel poll-teaser" hidden></div>
+      <div id="home-notices" class="panel" hidden></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{{t:home.how}}</h2>
+      <ol class="steps">
+        <li><strong>{{t:home.step1.t}}</strong><span>{{t:home.step1.d}}</span></li>
+        <li><strong>{{t:home.step2.t}}</strong><span>{{t:home.step2.d}}</span></li>
+        <li><strong>{{t:home.step3.t}}</strong><span>{{t:home.step3.d}}</span></li>
+        <li><strong>{{t:home.step4.t}}</strong><span>{{t:home.step4.d}}</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>{{t:home.top}}</h2>
+        <a href="/browse">{{t:home.viewAll}}</a>
+      </div>
+      <div id="trending" class="card-list" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{{t:home.topics}}</h2>
+      <div id="categories" class="category-grid"></div>
+    </div>
+  </section>
+</main>
+{{> footer}}
+<script src="/js/home.js"></script>
+</body>
+</html>
