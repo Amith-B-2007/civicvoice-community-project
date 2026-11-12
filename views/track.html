@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{t:track.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container narrow">
+    <header class="page-head">
+      <h1>{{t:track.h1}}</h1>
+      <p class="lead">{{t:track.lead}}</p>
+    </header>
+
+    <form id="track-form" class="form-card" novalidate>
+      <div class="field">
+        <label for="code">{{t:track.code}}</label>
+        <div class="input-group">
+          <input id="code" name="code" type="text" placeholder="SB-XXXXXX" autocomplete="off" autocapitalize="characters" maxlength="9" required>
+          <button class="btn btn-primary" type="submit">{{t:home.trackBtn}}</button>
+        </div>
+        <p class="error" id="track-error" role="alert" hidden></p>
+      </div>
+    </form>
+
+    <section id="mine" class="section-block" hidden>
+      <h2>{{t:track.mine}}</h2>
+      <div id="mine-list" class="card-list"></div>
+    </section>
+  </div>
+</main>
+{{> footer}}
+<script src="/js/track.js"></script>
+</body>
+</html>
