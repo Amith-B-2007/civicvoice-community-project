@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<title>{{t:submit.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container narrow">
+    <div id="form-view">
+      <header class="page-head">
+        <h1 id="submit-title">{{t:submit.h1}}</h1>
+        <p class="lead">{{t:submit.lead}}</p>
+      </header>
+
+      <form id="submit-form" class="form-card" novalidate>
+        <section class="form-step" aria-labelledby="step-1">
+        <h2 class="step-title" id="step-1"><span class="step-num" aria-hidden="true">1</span>{{t:submit.step.what}}</h2>
+        <fieldset class="field">
+          <legend>{{t:submit.kind}}</legend>
+          <div class="segmented" id="type-options"></div>
+          <p class="error" data-error="type" hidden></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="title">{{t:submit.title}}</label>
+          <input id="title" name="title" type="text" maxlength="120" required placeholder="{{t:submit.titlePh}}">
+          <p class="hint">{{t:submit.titleHint}}</p>
+          <p class="error" data-error="title" hidden></p>
+          <div id="similar" class="similar" hidden></div>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="description">{{t:submit.details}}</label>
+            <button type="button" class="btn btn-sm voice-button" id="voice-button" aria-pressed="false" hidden>
+              <span class="voice-dot" aria-hidden="true"></span><span id="voice-label">{{t:submit.voice}}</span>
+            </button>
+          </div>
+          <textarea id="description" name="description" rows="6" maxlength="2000" required placeholder="{{t:submit.detailsPh}}"></textarea>
+          <p class="hint"><span id="description-count">0</span> / 2000 {{t:submit.chars}}</p>
+          <p class="voice-status" id="voice-status" role="status" hidden></p>
+          <p class="error" data-error="description" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="category">{{t:submit.category}}</label>
+          <select id="category" name="category" required></select>
+          <p class="error" data-error="category" hidden></p>
+        </div>
+        </section>
+
+        <section class="form-step" aria-labelledby="step-2">
+        <h2 class="step-title" id="step-2"><span class="step-num" aria-hidden="true">2</span>{{t:submit.step.where}}</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="district">{{t:submit.district}}</label>
+            <select id="district" name="district" required></select>
+            <p class="error" data-error="district" hidden></p>
+          </div>
+          <div class="field">
+            <label for="town">{{t:submit.town}}</label>
+            <input id="town" name="town" type="text" maxlength="80" required placeholder="{{t:submit.townPh}}">
+            <p class="error" data-error="town" hidden></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ward">{{t:submit.ward}} <span class="optional">{{t:common.optional}}</span></label>
+          <input id="ward" name="ward" type="text" maxlength="60" placeholder="{{t:submit.wardPh}}">
+          <p class="error" data-error="ward" hidden></p>
+        </div>
+        <fieldset class="field">
+          <legend>{{t:submit.map}} <span class="optional">{{t:common.optional}}</span></legend>
+          <p class="hint hint-top">{{t:submit.mapHint}}</p>
+          <div class="map-tools">
+            <button type="button" class="btn btn-sm btn-primary" id="gps-button">{{t:submit.gps}}</button>
+            <button type="button" class="btn btn-sm" id="pin-remove" hidden>{{t:submit.pinRemove}}</button>
+          </div>
+          <p class="gps-status" id="gps-status" role="status" hidden></p>
+          <div id="pick-map" class="map map-pick"></div>
+          <p class="pin-status" id="pin-status">{{t:submit.pinNone}}</p>
+          <p class="error" data-error="pin" hidden></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="location">{{t:submit.place}} <span class="optional">{{t:common.optional}}</span></label>
+          <input id="location" name="location" type="text" maxlength="200" placeholder="{{t:submit.placePh}}">
+          <p class="error" data-error="location" hidden></p>
+        </div>
+        </section>
+
+        <section class="form-step" aria-labelledby="step-3">
+        <h2 class="step-title" id="step-3"><span class="step-num" aria-hidden="true">3</span>{{t:submit.step.photo}} <span class="optional">{{t:common.optional}}</span></h2>
+        <div class="field">
+          <label for="photo" class="sr-only">{{t:submit.photo}}</label>
+          <input id="photo" type="file" accept="image/*">
+          <p class="hint">{{t:submit.photoHint}}</p>
+          <p class="error" data-error="photo" hidden></p>
+          <div id="photo-preview" class="photo-preview" hidden>
+            <img alt="{{t:submit.photoAlt}}">
+            <button type="button" class="btn btn-sm" id="photo-remove">{{t:submit.photoRemove}}</button>
+          </div>
+        </div>
+
+        </section>
+
+        <section class="form-step" aria-labelledby="step-4">
+        <h2 class="step-title" id="step-4"><span class="step-num" aria-hidden="true">4</span>{{t:submit.about}}</h2>
+          <label class="check"><input type="checkbox" id="anonymous" name="anonymous"><span>{{t:submit.anon}}</span></label>
+          <div class="field-row">
+            <div class="field" id="name-field">
+              <label for="name">{{t:submit.name}} <span class="optional">{{t:common.optional}}</span></label>
+              <input id="name" name="name" type="text" maxlength="60" autocomplete="name">
+              <p class="error" data-error="name" hidden></p>
+            </div>
+            <div class="field">
+              <label for="contact">{{t:submit.contact}} <span class="optional">{{t:common.optional}}</span></label>
+              <input id="contact" name="contact" type="text" maxlength="120" autocomplete="off">
+              <p class="hint">{{t:submit.contactHint}}</p>
+              <p class="error" data-error="contact" hidden></p>
+            </div>
+          </div>
+        </section>
+
+        <div class="hp" aria-hidden="true">
+          <label>{{t:common.honeypot}} <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg" type="submit" id="submit-button">{{t:submit.send}}</button>
+          <p class="hint">{{t:submit.note}}</p>
+        </div>
+      </form>
+    </div>
+
+    <section id="success-view" class="success-card" tabindex="-1" hidden>
+      <p class="success-mark" aria-hidden="true">✓</p>
+      <h1>{{t:submit.done.h1}}</h1>
+      <p class="lead">{{t:submit.done.lead}}</p>
+      <div class="code-box">
+        <output id="success-code">SB-XXXXXX</output>
+        <button type="button" class="btn btn-sm" id="copy-code">{{t:common.copy}}</button>
+      </div>
+      <p class="hint">{{t:submit.done.remember}}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" id="success-link" href="/browse">{{t:submit.done.view}}</a>
+        <a class="btn" href="/submit">{{t:submit.done.another}}</a>
+      </div>
+    </section>
+  </div>
+</main>
+{{> footer}}
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/maps.js"></script>
+<script src="/js/submit.js"></script>
+</body>
+</html>
