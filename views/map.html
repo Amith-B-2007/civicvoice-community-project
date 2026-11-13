@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<title>{{t:map.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container">
+    <header class="page-head">
+      <h1>{{t:map.h1}}</h1>
+      <p class="lead">{{t:map.lead}}</p>
+    </header>
+
+    <form id="map-filters" class="filters filters-4">
+      <button type="button" class="btn filter-toggle" aria-expanded="false" aria-controls="filter-extra">{{t:browse.filters}}<span class="filter-count" hidden></span></button>
+      <div class="filter-extra" id="filter-extra">
+      <div class="field">
+        <label for="m-district">{{t:browse.district}}</label>
+        <select id="m-district" name="district"></select>
+      </div>
+      <div class="field">
+        <label for="m-category">{{t:browse.category}}</label>
+        <select id="m-category" name="category"></select>
+      </div>
+      <div class="field">
+        <label for="m-status">{{t:browse.status}}</label>
+        <select id="m-status" name="status"></select>
+      </div>
+      <div class="field">
+        <label for="m-type">{{t:browse.type}}</label>
+        <select id="m-type" name="type"></select>
+      </div>
+      </div>
+    </form>
+
+    <div class="results-bar">
+      <p id="map-count" class="result-count" aria-live="polite"></p>
+      <ul id="map-legend" class="legend"></ul>
+    </div>
+    <div id="big-map" class="map map-big"></div>
+  </div>
+</main>
+{{> footer}}
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/maps.js"></script>
+<script src="/js/map.js"></script>
+</body>
+</html>
