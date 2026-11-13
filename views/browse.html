@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{t:browse.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container">
+    <header class="page-head">
+      <h1>{{t:browse.h1}}</h1>
+      <p class="lead">{{t:browse.lead}}</p>
+    </header>
+
+    <form id="filters" class="filters" role="search">
+      <div class="field filter-search">
+        <label for="f-search">{{t:browse.search}}</label>
+        <div class="search-row">
+          <input id="f-search" name="search" type="search" placeholder="{{t:browse.searchPh}}" maxlength="80">
+          <button type="button" class="btn filter-toggle" aria-expanded="false" aria-controls="filter-extra">{{t:browse.filters}}<span class="filter-count" hidden></span></button>
+        </div>
+      </div>
+      <div class="filter-extra" id="filter-extra">
+      <div class="field">
+        <label for="f-category">{{t:browse.category}}</label>
+        <select id="f-category" name="category"></select>
+      </div>
+      <div class="field">
+        <label for="f-district">{{t:browse.district}}</label>
+        <select id="f-district" name="district"></select>
+      </div>
+      <div class="field">
+        <label for="f-status">{{t:browse.status}}</label>
+        <select id="f-status" name="status"></select>
+      </div>
+      <div class="field">
+        <label for="f-type">{{t:browse.type}}</label>
+        <select id="f-type" name="type"></select>
+      </div>
+      </div>
+    </form>
+
+    <div class="results-bar">
+      <p id="result-count" class="result-count" aria-live="polite"></p>
+      <div class="sort-tabs" role="group" aria-label="{{t:browse.sortBy}}">
+        <button type="button" data-sort="top" aria-pressed="true">{{t:browse.sortTop}}</button>
+        <button type="button" data-sort="new" aria-pressed="false">{{t:browse.sortNew}}</button>
+        <button type="button" data-sort="discussed" aria-pressed="false">{{t:browse.sortDiscussed}}</button>
+      </div>
+    </div>
+
+    <div id="results" class="card-list"></div>
+    <div class="load-more">
+      <button type="button" class="btn" id="load-more" hidden>{{t:common.showMore}}</button>
+    </div>
+  </div>
+</main>
+{{> footer}}
+<script src="/js/browse.js"></script>
+</body>
+</html>
