@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{t:polls.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container narrow">
+    <header class="page-head">
+      <h1>{{t:polls.h1}}</h1>
+      <p class="lead">{{t:polls.lead}}</p>
+    </header>
+    <div id="polls" class="stack">
+      <p class="loading">{{t:common.loading}}</p>
+    </div>
+  </div>
+</main>
+{{> footer}}
+<script src="/js/polls.js"></script>
+</body>
+</html>
