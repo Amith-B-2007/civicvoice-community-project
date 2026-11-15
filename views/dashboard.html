@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{t:dash.h1}} · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container">
+    <header class="page-head">
+      <h1>{{t:dash.h1}}</h1>
+      <p class="lead">{{t:dash.lead}}</p>
+    </header>
+
+    <div id="kpis" class="kpi-grid"></div>
+
+    <div class="chart-grid">
+      <section class="panel">
+        <h2>{{t:dash.status}}</h2>
+        <div id="chart-status" class="bars"></div>
+      </section>
+      <section class="panel">
+        <h2>{{t:dash.monthly}}</h2>
+        <div id="chart-monthly" class="columns"></div>
+      </section>
+      <section class="panel">
+        <h2>{{t:dash.category}}</h2>
+        <div id="chart-category" class="bars"></div>
+      </section>
+      <section class="panel">
+        <h2>{{t:dash.department}}</h2>
+        <div id="chart-department" class="bars"></div>
+      </section>
+      <section class="panel panel-wide">
+        <h2>{{t:dash.district}}</h2>
+        <div id="chart-district" class="bars bars-two"></div>
+      </section>
+    </div>
+  </div>
+</main>
+{{> footer}}
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

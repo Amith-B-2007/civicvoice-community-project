@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<meta name="robots" content="noindex">
+<title>Monthly report · {{siteName}}</title>
+</head>
+<body class="print-page">
+{{> header}}
+<main id="main" class="page" lang="en">
+  <div class="container">
+    <div class="admin-bar no-print">
+      <div>
+        <h1>Monthly report</h1>
+        <p class="hint">For council meetings. Choose a month, then print or save as PDF.</p>
+      </div>
+      <div class="admin-actions">
+        <label class="sr-only" for="report-month">Month</label>
+        <input id="report-month" type="month">
+        <button type="button" class="btn btn-primary" id="report-print">Print report</button>
+        <a class="btn" href="/admin">Back to the office</a>
+      </div>
+    </div>
+    <div id="report" class="report">
+      <p class="loading">Loading…</p>
+    </div>
+  </div>
+</main>
+{{> footer}}
+<script src="/js/report.js"></script>
+</body>
+</html>
