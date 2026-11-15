@@ -1,0 +1,234 @@
+(async function () {
+  'use strict';
+  const { el, api, t } = SB;
+
+  const root = document.getElementById('detail');
+  const code = (new URLSearchParams(location.search).get('id') || '').trim().toUpperCase();
+  const STAGES = ['submitted', 'under_review', 'planned', 'in_progress', 'implemented'];
+
+  let meta;
+  let s;
+  try {
+    [meta, s] = await Promise.all([SB.meta(), api(`/api/suggestions/${encodeURIComponent(code || '-')}`)]);
+  } catch (error) {
+    const missing = error.status === 404;
+    root.replaceChildren(SB.empty(
+      t(missing ? 'detail.notFound.t' : 'common.loadError'),
+      missing ? t('detail.notFound.d') : error.message,
+      el('a', { class: 'btn btn-primary', href: '/track' }, t('detail.trackBtn'))));
+    return;
+  }
+  document.title = `${s.title} · ${meta.siteName}`;
+
+  const statusLabel = (id) => (meta.statusById[id] ? meta.statusById[id].label : id);
+  const photoLink = (src, alt, className = 'detail-photo') => el('a', { href: src, target: '_blank', rel: 'noopener' },
+    el('img', { class: className, src, alt }));
+
+  // ---------- Progress and official updates ----------
+
+  function progressPanel() {
+    const current = STAGES.indexOf(s.status);
+    const stepper = s.status === 'not_feasible'
+      ? el('p', { class: 'notice notice-closed' }, t('detail.notFeasible'))
+      : el('ol', { class: 'stepper' }, STAGES.map((stage, index) => el('li', {
+        class: index < current ? 'done' : index === current ? 'current' : '',
+        'aria-current': index === current ? 'step' : null,
+      }, statusLabel(stage))));
+
+    const events = [{ label: statusLabel('submitted'), at: s.createdAt }].concat(s.updates.map((update) => ({
+      label: statusLabel(update.status),
+      note: update.note,
+      photo: update.photo,
+      at: update.createdAt,
+    })));
+
+    return el('section', { class: 'panel progress-panel' },
+      el('h2', null, t('detail.progress')),
+      stepper,
+      s.department && el('p', { class: 'handled-by' },
+        el('span', null, t('detail.handledBy')), el('strong', null, SB.departmentLabel(s.department, meta))),
+      el('h3', { class: 'panel-sub' }, t('detail.history')),
+      el('ol', { class: 'timeline' }, events.map((event) => el('li', null,
+        el('p', { class: 'timeline-head' }, el('strong', null, event.label), el('span', null, SB.formatDate(event.at))),
+        event.note && el('p', { class: 'prose timeline-note' }, event.note),
+        event.photo && photoLink(event.photo, t('detail.councilPhoto'), 'timeline-photo')))));
+  }
+
+  // ---------- Exact location ----------
+
+  function locationPanel() {
+    if (s.lat == null || s.lng == null) return null;
+    const mapBox = el('div', { class: 'map map-small' });
+    // Leaflet needs the box to be in the page before it can measure it.
+    requestAnimationFrame(() => {
+      const map = SB.maps.create(mapBox, meta, { center: [s.lat, s.lng], zoom: 17, wheel: false });
+      L.marker([s.lat, s.lng], { icon: SB.maps.pinIcon(s.status), interactive: false }).addTo(map);
+    });
+    return el('section', { class: 'panel location-panel' },
+      el('h2', null, t('detail.location')),
+      mapBox,
+      s.location && el('p', { class: 'location-text' }, s.location),
+      el('p', { class: 'code' }, SB.maps.coords(s.lat, s.lng)),
+      el('p', { class: 'map-links' },
+        el('a', { class: 'btn btn-sm', href: SB.maps.placeLink(s.lat, s.lng), target: '_blank', rel: 'noopener noreferrer' }, t('detail.openMaps')),
+        el('a', { class: 'btn btn-sm', href: SB.maps.directionsLink(s.lat, s.lng), target: '_blank', rel: 'noopener noreferrer' }, t('detail.directions'))));
+  }
+
+  // ---------- "Is this really fixed?" ----------
+
+  function fixedPanel() {
+    if (s.status !== 'implemented') return null;
+    const summary = el('p', { class: 'fixed-summary' });
+    const yes = el('button', { type: 'button', class: 'btn' }, t('detail.fixed.yes'));
+    const no = el('button', { type: 'button', class: 'btn' }, t('detail.fixed.no'));
+
+    function paint() {
+      summary.textContent = t('detail.fixed.summary', { yes: s.fixed.yes, no: s.fixed.no });
+      summary.hidden = s.fixed.yes + s.fixed.no === 0;
+      yes.setAttribute('aria-pressed', String(s.fixed.mine === true));
+      no.setAttribute('aria-pressed', String(s.fixed.mine === false));
+    }
+    async function answer(fixed) {
+      yes.disabled = no.disabled = true;
+      try {
+        s.fixed = await api(`/api/suggestions/${s.code}/fixed`, { method: 'POST', body: { fixed } });
+        paint();
+        SB.toast(t('detail.fixed.thanks'));
+      } catch (error) {
+        SB.toast(error.message, 'error');
+      } finally {
+        yes.disabled = no.disabled = false;
+      }
+    }
+    yes.addEventListener('click', () => answer(true));
+    no.addEventListener('click', () => answer(false));
+    paint();
+
+    return el('section', { class: 'fixed-box' },
+      el('h2', null, t('detail.fixed.q')),
+      el('p', null, t('detail.fixed.hint')),
+      el('div', { class: 'fixed-actions' }, yes, no),
+      summary);
+  }
+
+  // ---------- Share ----------
+
+  function sharePanel() {
+    const button = el('button', { type: 'button', class: 'btn btn-sm' }, t('detail.copyLink'));
+    button.addEventListener('click', async () => {
+      button.textContent = t((await SB.copy(location.href)) ? 'detail.linkCopied' : 'common.copyFailed');
+    });
+    return el('section', { class: 'panel share-panel' },
+      el('h2', null, t('detail.share')),
+      el('p', { class: 'hint hint-top' }, t('detail.shareHint')),
+      el('p', { class: 'share-row' }, el('span', { class: 'code' }, s.code), button),
+      el('p', { class: 'report-row' },
+        el('button', { type: 'button', class: 'link-button', onclick: () => SB.openReport({ code: s.code }) }, `⚑ ${t('detail.report')}`)));
+  }
+
+  // ---------- Comments ----------
+
+  function commentNode(comment) {
+    return el('li', { class: 'comment' },
+      el('p', { class: 'comment-head' },
+        el('strong', null, comment.author || t('common.resident')),
+        el('span', null, SB.timeAgo(comment.createdAt)),
+        el('button', {
+          type: 'button', class: 'link-button comment-report', title: t('detail.reportComment'),
+          'aria-label': t('detail.reportComment'),
+          onclick: () => SB.openReport({ code: s.code, commentId: comment.id }),
+        }, '⚑')),
+      el('p', { class: 'prose' }, comment.body));
+  }
+
+  function commentsSection() {
+    const heading = el('h2', null, t('detail.comments', { n: s.thread.length }));
+    const list = el('ol', { class: 'comments' }, s.thread.map(commentNode));
+    const none = el('p', { class: 'hint hint-top' }, t('detail.noComments'));
+    none.hidden = s.thread.length > 0;
+
+    const name = el('input', { id: 'c-name', type: 'text', maxlength: '60', autocomplete: 'name' });
+    const body = el('textarea', { id: 'c-body', rows: '3', maxlength: '600', required: true });
+    const trap = el('input', { type: 'text', name: 'website', tabindex: '-1', autocomplete: 'off' });
+    const submit = el('button', { type: 'submit', class: 'btn btn-primary' }, t('detail.postComment'));
+    const form = el('form', { class: 'comment-form', novalidate: true },
+      el('div', { class: 'field' },
+        el('label', { for: 'c-body' }, t('detail.addComment')), body,
+        el('p', { class: 'error', 'data-error': 'body', hidden: true })),
+      el('div', { class: 'field' },
+        el('label', { for: 'c-name' }, `${t('submit.name')} `, el('span', { class: 'optional' }, t('common.optional'))), name,
+        el('p', { class: 'error', 'data-error': 'name', hidden: true })),
+      el('div', { class: 'hp', 'aria-hidden': 'true' }, el('label', null, t('common.honeypot'), ' ', trap)),
+      el('div', { class: 'form-actions' }, submit));
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submit.disabled = true;
+      try {
+        const { comment } = await api(`/api/suggestions/${s.code}/comments`, {
+          method: 'POST',
+          body: { name: name.value, body: body.value, website: trap.value },
+        });
+        s.thread.push(comment);
+        list.append(commentNode(comment));
+        heading.textContent = t('detail.comments', { n: s.thread.length });
+        none.hidden = true;
+        body.value = '';
+        SB.showFieldErrors(form, null);
+      } catch (error) {
+        SB.showFieldErrors(form, error.fields);
+        if (!error.fields) SB.toast(error.message, 'error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    return el('section', { class: 'panel comments-panel' }, heading, none, list, form);
+  }
+
+  // ---------- Photos: the resident's photo, and a before/after pair once the council adds one ----------
+
+  function photos() {
+    const after = [...s.updates].reverse().find((update) => update.photo && update.status === 'implemented')
+      || [...s.updates].reverse().find((update) => update.photo);
+    if (s.photo && after) {
+      return el('div', { class: 'before-after' },
+        el('figure', null, photoLink(s.photo, t('detail.before')), el('figcaption', null, t('detail.before'))),
+        el('figure', null, photoLink(after.photo, t('detail.after')), el('figcaption', null, t('detail.after'))));
+    }
+    if (after) {
+      return el('figure', null, photoLink(after.photo, t('detail.councilPhoto')), el('figcaption', null, t('detail.councilPhoto')));
+    }
+    return s.photo ? photoLink(s.photo, t('detail.photoAlt')) : null;
+  }
+
+  // ---------- Page ----------
+
+  const category = SB.category(s.category, meta);
+  const reply = [...s.updates].reverse().find((update) => update.note);
+  const place = [s.location, s.ward && SB.ward(s.ward), SB.place(s, meta)].filter(Boolean).join(', ');
+
+  root.replaceChildren(
+    el('p', { class: 'crumbs' }, el('a', { href: '/browse' }, t('detail.back'))),
+    el('div', { class: 'detail-grid' },
+      el('div', { class: 'detail-main' },
+        el('header', { class: 'detail-head' },
+          SB.voteButton(s, { large: true }),
+          el('div', null,
+            el('div', { class: 'badges' },
+              SB.typeBadge(s.type, meta), SB.statusBadge(s.status, meta), el('span', { class: 'code' }, s.code)),
+            el('h1', null, s.title),
+            el('p', { class: 'meta' },
+              el('span', null, `${category.icon} ${category.label}`),
+              el('span', null, place),
+              el('span', null, t('detail.by', { name: s.author || t('common.anonymous') })),
+              el('span', null, SB.formatDate(s.createdAt))))),
+        reply && el('section', { class: 'reply' },
+          el('h2', null, t('detail.reply', { body: SB.departmentLabel(s.department, meta) || meta.bodyName })),
+          el('p', { class: 'prose' }, reply.note),
+          el('p', { class: 'hint' }, SB.formatDate(reply.createdAt))),
+        fixedPanel(),
+        el('section', { class: 'panel description-panel' }, el('p', { class: 'prose' }, s.description), photos()),
+        commentsSection()),
+      el('aside', { class: 'detail-side' }, progressPanel(), locationPanel(), sharePanel())));
+})();

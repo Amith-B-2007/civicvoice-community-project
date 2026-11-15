@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<title>{{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page">
+  <div class="container" id="detail">
+    <p class="loading">{{t:common.loading}}</p>
+  </div>
+</main>
+{{> footer}}
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/maps.js"></script>
+<script src="/js/suggestion.js"></script>
+</body>
+</html>
