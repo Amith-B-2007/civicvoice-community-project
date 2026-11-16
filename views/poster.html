@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<title>{{t:poster.h1}} · {{siteName}}</title>
+</head>
+<body class="print-page">
+{{> header}}
+<main id="main" class="page">
+  <div class="container narrow">
+    <header class="page-head no-print">
+      <h1>{{t:poster.h1}}</h1>
+      <p class="lead">{{t:poster.lead}}</p>
+    </header>
+
+    <form id="poster-form" class="form-card no-print">
+      <div class="field">
+        <label for="poster-url">{{t:poster.url}}</label>
+        <div class="input-group">
+          <input id="poster-url" type="text" class="plain-case" inputmode="url" autocomplete="off" maxlength="200">
+          <button class="btn btn-primary" type="button" id="poster-print">{{t:poster.print}}</button>
+        </div>
+        <p class="hint">{{t:poster.urlHint}}</p>
+      </div>
+    </form>
+
+    <section class="poster" aria-label="{{t:poster.h1}}">
+      <p class="poster-brand">
+        <svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#111111"/>
+          <path d="M12 13V8h8v5" fill="none" stroke="#e11d2e" stroke-width="2" stroke-linejoin="round"/>
+          <rect x="7" y="13.5" width="18" height="11.5" rx="2" fill="#fff"/>
+          <rect x="11" y="16.5" width="10" height="2" rx="1" fill="#e11d2e"/>
+        </svg>
+        <span><strong>{{siteName}}</strong><small>{{tagline}}</small></span>
+      </p>
+      <h2 class="poster-headline">{{t:poster.headline}}</h2>
+      <p class="poster-sub">{{t:poster.sub}}</p>
+      <div id="poster-qr" class="poster-qr" role="img" aria-label="QR"></div>
+      <p id="poster-address" class="poster-address"></p>
+      <ol class="poster-steps">
+        <li>{{t:poster.s1}}</li>
+        <li>{{t:poster.s2}}</li>
+        <li>{{t:poster.s3}}</li>
+      </ol>
+      <p class="poster-foot">{{t:poster.foot}}</p>
+    </section>
+  </div>
+</main>
+{{> footer}}
+<script src="/vendor/qrcode/qrcode.js"></script>
+<script src="/js/poster.js"></script>
+</body>
+</html>
