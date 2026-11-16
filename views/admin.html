@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+{{> head}}
+<meta name="robots" content="noindex">
+<title>Officials · {{siteName}}</title>
+</head>
+<body>
+{{> header}}
+<main id="main" class="page" lang="en">
+  <div class="container">
+
+    <section id="login-view" class="narrow-block" hidden>
+      <header class="page-head">
+        <h1>District Corporation &amp; Official Login</h1>
+        <p class="lead">Select your District Corporation and sign in with your District User ID and Password to manage your district's problems.</p>
+      </header>
+      <form id="login-form" class="form-card" novalidate>
+        <div class="field">
+          <label for="login-district">District Corporation <span class="optional">optional for head admin</span></label>
+          <select id="login-district" name="district"></select>
+          <p class="hint" id="login-district-hint" hidden></p>
+        </div>
+        <div class="field">
+          <label for="username">District User ID / Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" required placeholder="e.g. mysuru">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Sign in</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="panel-view" hidden>
+      <div class="admin-bar">
+        <div>
+          <h1 id="admin-heading">Council office</h1>
+          <p class="hint">Signed in as <strong id="admin-name"></strong> · <span id="admin-role"></span></p>
+        </div>
+        <div class="admin-actions">
+          <a class="btn btn-sm" href="/report">Monthly report</a>
+          <a class="btn btn-sm" href="/poster">QR poster</a>
+          <a class="btn btn-sm" href="/api/admin/export.csv" download>Export CSV</a>
+          <button type="button" class="btn btn-sm" id="open-password">Change password</button>
+          <button type="button" class="btn btn-sm" id="logout">Sign out</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" id="admin-tabs">
+        <button type="button" role="tab" data-tab="submissions" aria-selected="true">Submissions</button>
+        <button type="button" role="tab" data-tab="polls" aria-selected="false">Polls</button>
+        <button type="button" role="tab" data-tab="notices" aria-selected="false">Notices</button>
+        <button type="button" role="tab" data-tab="officers" aria-selected="false" data-head>Officers &amp; Corporations</button>
+      </div>
+
+      <!-- Submissions -->
+      <div id="tab-submissions" role="tabpanel">
+        <div id="admin-kpis" class="kpi-grid kpi-small"></div>
+
+        <div id="status-tabs" class="sort-tabs status-tabs" role="group" aria-label="Filter by problem status"></div>
+
+        <form id="admin-filters" class="filters">
+          <div class="field filter-search">
+            <label for="a-search">Search</label>
+            <input id="a-search" name="search" type="search" placeholder="Keyword or tracking code" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="a-attention">Needs attention</label>
+            <select id="a-attention" name="attention">
+              <option value="">Everything</option>
+              <option value="overdue">Overdue (no response yet)</option>
+              <option value="reported">Reported by residents</option>
+              <option value="disputed">Residents say not fixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="a-status">Status</label>
+            <select id="a-status" name="status"></select>
+          </div>
+          <div class="field" id="a-district-field">
+            <label for="a-district">District</label>
+            <select id="a-district" name="district"></select>
+          </div>
+          <div class="field" id="a-department-field">
+            <label for="a-department">Department</label>
+            <select id="a-department" name="department"></select>
+          </div>
+          <div class="field">
+            <label for="a-sort">Sort</label>
+            <select id="a-sort" name="sort">
+              <option value="new">Newest first</option>
+              <option value="top">Most supported</option>
+              <option value="discussed">Most discussed</option>
+            </select>
+          </div>
+        </form>
+
+        <p id="admin-count" class="result-count" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Submission</th>
+                <th scope="col">Place</th>
+                <th scope="col" class="num">Votes</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="col-date">Received</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="admin-rows"></tbody>
+          </table>
+        </div>
+        <div class="load-more">
+          <button type="button" class="btn" id="admin-more" hidden>Show more</button>
+        </div>
+      </div>
+
+      <!-- Polls -->
+      <div id="tab-polls" role="tabpanel" hidden>
+        <div class="admin-split">
+          <form id="poll-form" class="form-card" novalidate>
+            <h2>New poll</h2>
+            <div class="field">
+              <label for="poll-question">Question</label>
+              <input id="poll-question" type="text" maxlength="200" required placeholder="e.g. Which park should be repaired first?">
+              <p class="error" data-error="question" hidden></p>
+            </div>
+            <div class="field">
+              <label for="poll-description">Explanation <span class="optional">optional</span></label>
+              <textarea id="poll-description" rows="2" maxlength="500"></textarea>
+              <p class="error" data-error="description" hidden></p>
+            </div>
+            <div class="field">
+              <label for="poll-options">Options</label>
+              <textarea id="poll-options" rows="4" placeholder="One option per line"></textarea>
+              <p class="hint">Two to eight options, one per line.</p>
+              <p class="error" data-error="options" hidden></p>
+            </div>
+            <div class="field">
+              <label for="poll-closes">Closing date <span class="optional">optional</span></label>
+              <input id="poll-closes" type="date">
+              <p class="error" data-error="closesAt" hidden></p>
+            </div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit">Publish poll</button></div>
+          </form>
+          <div id="admin-polls" class="stack"></div>
+        </div>
+      </div>
+
+      <!-- Notices -->
+      <div id="tab-notices" role="tabpanel" hidden>
+        <div class="admin-split">
+          <form id="notice-form" class="form-card" novalidate>
+            <h2>New notice</h2>
+            <div class="field">
+              <label for="notice-title">Title</label>
+              <input id="notice-title" type="text" maxlength="120" required>
+              <p class="error" data-error="title" hidden></p>
+            </div>
+            <div class="field">
+              <label for="notice-body">Notice text</label>
+              <textarea id="notice-body" rows="5" maxlength="2000" required></textarea>
+              <p class="error" data-error="body" hidden></p>
+            </div>
+            <label class="check"><input type="checkbox" id="notice-pinned"><span>Mark as important (stays at the top)</span></label>
+            <div class="form-actions"><button class="btn btn-primary" type="submit">Publish notice</button></div>
+          </form>
+          <div id="admin-notices" class="stack"></div>
+        </div>
+      </div>
+
+      <!-- Officers -->
+      <div id="tab-officers" role="tabpanel" hidden>
+        <div class="admin-split">
+          <form id="officer-form" class="form-card" novalidate autocomplete="off">
+            <h2>New officer account</h2>
+            <p class="hint hint-top">An officer signs in here and sees only the submissions of their department.</p>
+            <div class="field">
+              <label for="officer-name">Full name</label>
+              <input id="officer-name" type="text" maxlength="60" required>
+              <p class="error" data-error="name" hidden></p>
+            </div>
+            <div class="field">
+              <label for="officer-username">Username</label>
+              <input id="officer-username" type="text" maxlength="30" autocapitalize="none" autocomplete="off" required>
+              <p class="error" data-error="username" hidden></p>
+            </div>
+            <div class="field">
+              <label for="officer-department">Department</label>
+              <select id="officer-department" required></select>
+              <p class="error" data-error="department" hidden></p>
+            </div>
+            <div class="field">
+              <label for="officer-district">District</label>
+              <select id="officer-district"></select>
+              <p class="hint">Choose a district to limit the officer to it.</p>
+              <p class="error" data-error="district" hidden></p>
+            </div>
+            <div class="field">
+              <label for="officer-password">Starting password</label>
+              <input id="officer-password" type="password" autocomplete="new-password" minlength="8" required>
+              <p class="hint">At least 8 characters. The officer can change it after signing in.</p>
+              <p class="error" data-error="password" hidden></p>
+            </div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit">Create account</button></div>
+          </form>
+          <div class="table-wrap">
+            <table class="table table-compact">
+              <thead>
+                <tr><th scope="col">Name</th><th scope="col">Username</th><th scope="col">Department</th><th scope="col">District</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+              </thead>
+              <tbody id="officer-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="manage" class="dialog dialog-wide" aria-labelledby="manage-title">
+    <div class="dialog-head">
+      <h2 id="manage-title">Submission</h2>
+      <button type="button" class="btn btn-sm" data-close>Close</button>
+    </div>
+    <div id="manage-body" class="dialog-body"></div>
+  </dialog>
+
+  <dialog id="password-dialog" class="dialog" aria-labelledby="password-title">
+    <form id="password-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="password-title">Change password</h2>
+        <button type="button" class="btn btn-sm" data-close>Close</button>
+      </div>
+      <div class="dialog-body">
+        <p class="hint" id="password-for" hidden></p>
+        <div class="field" id="pw-current-field">
+          <label for="pw-current">Current password</label>
+          <input id="pw-current" type="password" autocomplete="current-password">
+          <p class="error" data-error="current" hidden></p>
+        </div>
+        <div class="field">
+          <label for="pw-next">New password</label>
+          <input id="pw-next" type="password" autocomplete="new-password" minlength="8" required>
+          <p class="hint">At least 8 characters.</p>
+          <p class="error" data-error="next" hidden></p>
+        </div>
+        <div class="field">
+          <label for="pw-confirm">Repeat new password</label>
+          <input id="pw-confirm" type="password" autocomplete="new-password" required>
+          <p class="error" data-error="confirm" hidden></p>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Save new password</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+</main>
+{{> footer}}
+<script src="/js/maps.js"></script>
+<script src="/js/admin.js"></script>
+<script src="/js/admin-extra.js"></script>
+</body>
+</html>
