@@ -1156,3 +1156,135 @@ button.kpi:hover { border-color: var(--primary); }
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- 5-Star Quality Rating & Karnataka Emergency Helpline Directory ---------- */
+.rating-box {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--accent-soft-line);
+}
+.rating-label {
+  margin: 0 0 8px !important;
+  font-weight: 600;
+  font-size: .95rem;
+}
+.star-group {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.star-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: #b8b8b8;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--btn-edge), 0 4px 10px rgba(0, 0, 0, .08);
+  transition: transform .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+.star-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.06);
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+.star-btn.star-active {
+  color: #f59e0b;
+  border-color: #d97706;
+  background: #fffbeb;
+  box-shadow: 0 3px 0 #d97706, 0 6px 12px rgba(245, 158, 11, .22);
+}
+:root[data-theme="dark"] .star-btn.star-active {
+  background: #332407;
+  color: #fbbf24;
+  border-color: #f59e0b;
+}
+.rating-summary {
+  margin: 10px 0 0 !important;
+  font-weight: 700;
+  color: #b45309;
+}
+:root[data-theme="dark"] .rating-summary {
+  color: #fbbf24;
+}
+.badge-rating {
+  background: #fff1cc;
+  color: #854d0e;
+  border: 1px solid #f59e0b;
+}
+:root[data-theme="dark"] .badge-rating {
+  background: #3b2a0a;
+  color: #fde68a;
+  border-color: #d97706;
+}
+
+.helpline-bar {
+  background: #171717;
+  color: #f5f5f5;
+  border-top: 3px solid var(--accent);
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  padding: 12px 0;
+  font-size: .88rem;
+}
+.helpline-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+}
+.helpline-title {
+  color: #ff6b76;
+  white-space: nowrap;
+}
+.helpline-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.helpline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .09);
+  border: 1px solid rgba(255, 255, 255, .2);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .14s ease, background-color .14s ease, border-color .14s ease;
+}
+.helpline-pill span {
+  font-weight: 400;
+  color: #d4d4d4;
+  font-size: .82rem;
+}
+.helpline-pill:hover {
+  color: #ffffff;
+  background: var(--primary);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+.helpline-pill:hover span {
+  color: #ffffff;
+}
+.helpline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.helpline-card {
+  border: 1px solid var(--line-strong);
+}
+.helpline-card strong {
+  color: var(--primary);
+}
+@media (max-width: 680px) {
+  .helpline-grid {
+    grid-template-columns: 1fr;
+  }
+}

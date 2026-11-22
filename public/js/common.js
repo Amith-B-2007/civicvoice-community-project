@@ -195,7 +195,8 @@
         el('div', { class: 'badges' },
           SB.typeBadge(suggestion.type, meta),
           SB.statusBadge(suggestion.status, meta),
-          suggestion.responded && el('span', { class: 'badge badge-reply' }, t('badge.replied'))),
+          suggestion.responded && el('span', { class: 'badge badge-reply' }, t('badge.replied')),
+          suggestion.fixed && suggestion.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(suggestion.fixed.ratingAvg).toFixed(1)} (${suggestion.fixed.ratingCount})`)),
         el('h3', { class: 'card-title' }, el('a', { href: SB.link(suggestion.code) }, suggestion.title)),
         el('p', { class: 'card-excerpt' }, suggestion.excerpt),
         el('p', { class: 'meta' },
@@ -563,6 +564,42 @@
   const roleBtn = document.getElementById('role-gate-button');
   if (roleBtn) {
     roleBtn.addEventListener('click', () => SB.openRoleGate(false));
+  }
+
+  // ---------- Karnataka Civic Emergency Helpline Directory Modal ----------
+  SB.openHelplines = function () {
+    const existing = document.getElementById('helpline-dialog');
+    if (existing) existing.remove();
+
+    const HELPLINES = [
+      { icon: '⚡', num: '1912', title: 'Electricity & Power (ESCOMs)', desc: 'BESCOM, MESCOM, HESCOM, GESCOM, CESC — Fallen electric poles, live wires, transformer faults & power outages.' },
+      { icon: '🚰', num: '1916', title: 'Water Supply & Sewerage', desc: 'BWSSB & KUWSDB — Main water pipeline bursts, severe water leakage, contamination & sewage overflow.' },
+      { icon: '🚓', num: '112', title: 'National Emergency & Police', desc: '24/7 Emergency Response Support System — Public safety hazards, road accidents & urgent police help.' },
+      { icon: '🚑', num: '108', title: 'Arogya Kavacha Ambulance', desc: '24/7 Toll-free medical emergency & ambulance dispatch across all 31 districts of Karnataka.' },
+      { icon: '🚒', num: '101', title: 'Fire & Emergency Rescue', desc: 'Fire accidents, fallen trees blocking roads, flooding & disaster rescue services.' },
+      { icon: '🏛️', num: '1902', title: 'Karnataka State Civic Helpline', desc: 'Janaspandana / State municipal & urban local body public grievance helpline.' },
+    ];
+
+    const dialog = el('dialog', { id: 'helpline-dialog', class: 'dialog dialog-wide' },
+      el('div', { class: 'dialog-head' },
+        el('h2', null, '🚨 Karnataka Civic Emergency Helplines (24/7 Toll-Free)'),
+        el('button', { type: 'button', class: 'btn btn-sm', onclick: () => dialog.close() }, t('common.close'))),
+      el('div', { class: 'dialog-body' },
+        el('p', { class: 'hint hint-top' }, 'For life-threatening hazards or urgent utility emergencies, tap any number below to call immediately:'),
+        el('div', { class: 'helpline-grid' }, HELPLINES.map((h) =>
+          el('a', { class: 'action-tile helpline-card', href: `tel:${h.num}` },
+            el('span', { class: 'action-icon', 'aria-hidden': 'true' }, h.icon),
+            el('strong', null, `${h.num} — ${h.title}`),
+            el('span', null, h.desc))))));
+
+    dialog.addEventListener('close', () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
+  };
+
+  const helplineBtn = document.getElementById('helpline-button');
+  if (helplineBtn) {
+    helplineBtn.addEventListener('click', () => SB.openHelplines());
   }
 
   try {
