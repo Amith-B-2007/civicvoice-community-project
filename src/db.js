@@ -146,6 +146,7 @@ addColumn('admins', 'name', 'TEXT');
 addColumn('suggestions', 'district', 'TEXT');
 addColumn('suggestions', 'town', 'TEXT');
 addColumn('admins', 'district', 'TEXT');
+addColumn('confirmations', 'rating', 'INTEGER');
 db.exec(`UPDATE suggestions SET category = 'waste' WHERE category = 'health'`);
 
 // Limits a query to one department and/or one district (used for officers). Empty means everything.
@@ -188,6 +189,8 @@ const COUNTS = `
   EXISTS (SELECT 1 FROM updates u WHERE u.suggestion_id = s.id AND u.note IS NOT NULL) AS responded,
   (SELECT COUNT(*) FROM confirmations cf WHERE cf.suggestion_id = s.id AND cf.resolved = 1) AS fixed_yes,
   (SELECT COUNT(*) FROM confirmations cf WHERE cf.suggestion_id = s.id AND cf.resolved = 0) AS fixed_no,
+  (SELECT ROUND(AVG(cf.rating), 1) FROM confirmations cf WHERE cf.suggestion_id = s.id AND cf.rating IS NOT NULL) AS rating_avg,
+  (SELECT COUNT(*) FROM confirmations cf WHERE cf.suggestion_id = s.id AND cf.rating IS NOT NULL) AS rating_count,
   (SELECT COUNT(*) FROM reports r WHERE r.suggestion_id = s.id) AS reports`;
 
 const DISPUTED = `s.status = 'implemented'
@@ -226,7 +229,12 @@ function present(row, { full = false, admin = false } = {}) {
     voted: Boolean(row.voted),
     responded: Boolean(row.responded),
     hasPhoto: Boolean(row.photo),
-    fixed: { yes: row.fixed_yes, no: row.fixed_no },
+    fixed: {
+      yes: row.fixed_yes,
+      no: row.fixed_no,
+      ratingAvg: row.rating_avg ? Number(row.rating_avg) : null,
+      ratingCount: row.rating_count || 0,
+    },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -327,8 +335,9 @@ function getSuggestion(code, { voter = '', admin = false } = {}) {
   if (!row || (row.hidden && !admin)) return null;
   const suggestion = present(row, { full: true, admin });
 
-  const mine = get('SELECT resolved FROM confirmations WHERE suggestion_id = ? AND voter = ?', row.id, voter);
+  const mine = get('SELECT resolved, rating FROM confirmations WHERE suggestion_id = ? AND voter = ?', row.id, voter);
   suggestion.fixed.mine = mine ? Boolean(mine.resolved) : null;
+  suggestion.fixed.myRating = mine && mine.rating ? Number(mine.rating) : null;
 
   suggestion.updates = all(
     `SELECT id, status, note, photo, by_name AS byName, created_at AS createdAt
@@ -465,16 +474,42 @@ function removeUpdatePhoto(id) {
 
 // ---------- "Is it really fixed?" and abuse reports ----------
 
+function confirmationSummary(suggestionId, voter) {
+  const count = (value) => get(
+    'SELECT COUNT(*) AS n FROM confirmations WHERE suggestion_id = ? AND resolved = ?', suggestionId, value,
+  ).n;
+  const rStat = get(
+    'SELECT ROUND(AVG(rating), 1) AS avg, COUNT(rating) AS cnt FROM confirmations WHERE suggestion_id = ? AND rating IS NOT NULL',
+    suggestionId,
+  );
+  const mine = get('SELECT resolved, rating FROM confirmations WHERE suggestion_id = ? AND voter = ?', suggestionId, voter);
+  return {
+    yes: count(1),
+    no: count(0),
+    mine: mine ? Boolean(mine.resolved) : null,
+    ratingAvg: rStat && rStat.avg ? Number(rStat.avg) : null,
+    ratingCount: (rStat && rStat.cnt) || 0,
+    myRating: mine && mine.rating ? Number(mine.rating) : null,
+  };
+}
+
 function setConfirmation(suggestionId, voter, resolved, at = now()) {
   run(
     `INSERT INTO confirmations (suggestion_id, voter, resolved, created_at) VALUES (?, ?, ?, ?)
      ON CONFLICT (suggestion_id, voter) DO UPDATE SET resolved = excluded.resolved, created_at = excluded.created_at`,
     suggestionId, voter, resolved ? 1 : 0, at,
   );
-  const count = (value) => get(
-    'SELECT COUNT(*) AS n FROM confirmations WHERE suggestion_id = ? AND resolved = ?', suggestionId, value,
-  ).n;
-  return { yes: count(1), no: count(0), mine: Boolean(resolved) };
+  return confirmationSummary(suggestionId, voter);
+}
+
+function setRating(suggestionId, voter, rating, at = now()) {
+  const defaultResolved = rating >= 3 ? 1 : 0;
+  run(
+    `INSERT INTO confirmations (suggestion_id, voter, resolved, rating, created_at) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT (suggestion_id, voter) DO UPDATE SET rating = excluded.rating, created_at = excluded.created_at`,
+    suggestionId, voter, defaultResolved, rating, at,
+  );
+  return confirmationSummary(suggestionId, voter);
 }
 
 function addReport(suggestionId, commentId, reason, voter) {
@@ -615,6 +650,12 @@ function stats(filter = {}) {
   ).n;
   const fixedYes = countJoined('confirmations', 'AND x.resolved = 1');
   const fixedNo = countJoined('confirmations', 'AND x.resolved = 0');
+  const ratingStats = get(
+    `SELECT ROUND(AVG(x.rating), 1) AS avg, COUNT(x.rating) AS cnt
+     FROM confirmations x JOIN suggestions s ON s.id = x.suggestion_id
+     WHERE ${sScope} AND x.rating IS NOT NULL`,
+    ...scoped,
+  );
 
   return {
     total,
@@ -632,6 +673,8 @@ function stats(filter = {}) {
       yes: fixedYes,
       no: fixedNo,
       rate: fixedYes + fixedNo ? Math.round((fixedYes / (fixedYes + fixedNo)) * 100) : null,
+      ratingAvg: ratingStats && ratingStats.avg ? Number(ratingStats.avg) : null,
+      ratingCount: (ratingStats && ratingStats.cnt) || 0,
     },
     pinned: get(`SELECT COUNT(*) AS n FROM suggestions WHERE ${scope} AND lat IS NOT NULL`, ...scoped).n,
     byStatus,
@@ -751,7 +794,7 @@ module.exports = {
   backfillDepartment, similar,
   toggleVote, addComment, findComment, deleteComment, addUpdate, setHidden,
   removeSuggestionPhoto, findUpdate, removeUpdatePhoto,
-  setConfirmation, addReport, clearReports,
+  setConfirmation, setRating, addReport, clearReports,
   listPolls, getPoll, createPoll, votePoll, setPollClosed, deletePoll, countPolls,
   listNotices, createNotice, deleteNotice, countNotices,
   stats, attention, monthlyReport, exportRows,

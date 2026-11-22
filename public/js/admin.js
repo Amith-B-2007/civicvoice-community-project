@@ -152,6 +152,7 @@
 
   function flags(s) {
     return [
+      s.fixed && s.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(s.fixed.ratingAvg).toFixed(1)} (${s.fixed.ratingCount})`),
       s.overdue && el('span', { class: 'badge badge-warn' }, 'Overdue'),
       s.disputed && el('span', { class: 'badge badge-warn' }, 'Residents say not fixed'),
       s.reports > 0 && el('span', { class: 'badge badge-hidden' }, `Reported (${s.reports})`),
@@ -238,6 +239,7 @@
       kpi(sum.reported, 'reported by residents', 'reported'),
       kpi(sum.disputed, 'marked done, residents disagree', 'disputed'),
       kpi(sum.active, 'being worked on', ''),
+      kpi(sum.ratingAvg ? `${Number(sum.ratingAvg).toFixed(1)} ★` : '–', `avg quality rating (${sum.ratingCount || 0})`, ''),
       kpi(sum.total, 'public submissions', ''));
   }
   admin.tabs.submissions = () => load();
@@ -434,7 +436,9 @@
         fact('Received', SB.formatDate(s.createdAt)),
         fact('Support', `${s.votes} vote${s.votes === 1 ? '' : 's'}, ${s.thread.length} comment${s.thread.length === 1 ? '' : 's'}`),
         s.status === 'implemented' && fact('Residents on the result',
-          answers ? `${s.fixed.yes} say fixed, ${s.fixed.no} say not fixed` : 'No answers yet')),
+          answers ? `${s.fixed.yes} say fixed, ${s.fixed.no} say not fixed` : 'No answers yet'),
+        s.status === 'implemented' && fact('5-Star quality rating',
+          s.fixed && s.fixed.ratingCount ? `★ ${Number(s.fixed.ratingAvg).toFixed(1)} / 5 (${s.fixed.ratingCount} rating${s.fixed.ratingCount === 1 ? '' : 's'})` : 'No ratings yet')),
       el('p', { class: 'prose' }, s.description),
       s.photo && el('div', { class: 'photo-preview' },
         el('a', { href: s.photo, target: '_blank', rel: 'noopener' },

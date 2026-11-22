@@ -93,6 +93,8 @@ module.exports = function registerAdminApi(app) {
       awaiting: stats.byStatus.submitted,
       active: stats.byStatus.under_review + stats.byStatus.planned + stats.byStatus.in_progress,
       byStatus: stats.byStatus,
+      ratingAvg: stats.fixed.ratingAvg,
+      ratingCount: stats.fixed.ratingCount,
       overdue: stats.overdue,
       overdueDays: stats.overdueDays,
       ...db.attention(limits(ctx)),

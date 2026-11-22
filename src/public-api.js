@@ -164,6 +164,18 @@ module.exports = function registerPublicApi(app) {
     return db.setConfirmation(suggestion.id, ctx.voter, body.fixed);
   });
 
+  // 5-Star Quality Rating (1 to 5 stars) on completed (implemented) work.
+  route('POST', '/api/suggestions/:code/rate', async (ctx) => {
+    if (!ctx.voter) throw new HttpError(400, 'err.voter');
+    rateLimit(`fixed:${ctx.ip}`, 30, MINUTE);
+    const suggestion = app.visibleSuggestion(ctx);
+    const body = await readJson(ctx.req, 1 * KB);
+    if (suggestion.status !== 'implemented') throw new HttpError(409, 'err.notImplemented');
+    const stars = Number(body.rating);
+    if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new HttpError(400, 'err.json');
+    return db.setRating(suggestion.id, ctx.voter, stars);
+  });
+
   route('POST', '/api/reports', async (ctx) => {
     if (!ctx.voter) throw new HttpError(400, 'err.voter');
     rateLimit(`report:${ctx.ip}`, 10, 10 * MINUTE);

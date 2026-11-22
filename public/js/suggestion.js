@@ -79,15 +79,41 @@
   function fixedPanel() {
     if (s.status !== 'implemented') return null;
     const summary = el('p', { class: 'fixed-summary' });
+    const ratingSummary = el('p', { class: 'rating-summary' });
     const yes = el('button', { type: 'button', class: 'btn' }, t('detail.fixed.yes'));
     const no = el('button', { type: 'button', class: 'btn' }, t('detail.fixed.no'));
+
+    const starButtons = [1, 2, 3, 4, 5].map((stars) => {
+      const btn = el('button', {
+        type: 'button',
+        class: 'star-btn',
+        'aria-label': `Rate ${stars} out of 5 stars`,
+        title: `${stars} star${stars > 1 ? 's' : ''}`,
+        onclick: () => submitRating(stars),
+      }, '★');
+      return btn;
+    });
 
     function paint() {
       summary.textContent = t('detail.fixed.summary', { yes: s.fixed.yes, no: s.fixed.no });
       summary.hidden = s.fixed.yes + s.fixed.no === 0;
       yes.setAttribute('aria-pressed', String(s.fixed.mine === true));
       no.setAttribute('aria-pressed', String(s.fixed.mine === false));
+
+      const currentStars = s.fixed.myRating || 0;
+      starButtons.forEach((btn, idx) => {
+        const active = idx < currentStars;
+        btn.classList.toggle('star-active', active);
+        btn.setAttribute('aria-pressed', String(idx + 1 === currentStars));
+      });
+      if (s.fixed.ratingCount > 0 && s.fixed.ratingAvg != null) {
+        ratingSummary.textContent = `★ ${Number(s.fixed.ratingAvg).toFixed(1)} / 5 average quality rating (${s.fixed.ratingCount} rating${s.fixed.ratingCount === 1 ? '' : 's'})`;
+        ratingSummary.hidden = false;
+      } else {
+        ratingSummary.hidden = true;
+      }
     }
+
     async function answer(fixed) {
       yes.disabled = no.disabled = true;
       try {
@@ -100,6 +126,20 @@
         yes.disabled = no.disabled = false;
       }
     }
+
+    async function submitRating(rating) {
+      for (const b of starButtons) b.disabled = true;
+      try {
+        s.fixed = await api(`/api/suggestions/${s.code}/rate`, { method: 'POST', body: { rating } });
+        paint();
+        SB.toast(`Thank you for rating the work ${rating} ★!`);
+      } catch (error) {
+        SB.toast(error.message, 'error');
+      } finally {
+        for (const b of starButtons) b.disabled = false;
+      }
+    }
+
     yes.addEventListener('click', () => answer(true));
     no.addEventListener('click', () => answer(false));
     paint();
@@ -108,7 +148,11 @@
       el('h2', null, t('detail.fixed.q')),
       el('p', null, t('detail.fixed.hint')),
       el('div', { class: 'fixed-actions' }, yes, no),
-      summary);
+      summary,
+      el('div', { class: 'rating-box' },
+        el('p', { class: 'rating-label' }, 'Rate the quality of the completed work (1 to 5 stars):'),
+        el('div', { class: 'star-group', role: 'group', 'aria-label': '5-star quality rating' }, starButtons),
+        ratingSummary));
   }
 
   // ---------- Share ----------
