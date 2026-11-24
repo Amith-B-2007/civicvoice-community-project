@@ -230,15 +230,70 @@
     return el('section', { class: 'panel comments-panel' }, heading, none, list, form);
   }
 
-  // ---------- Photos: the resident's photo, and a before/after pair once the council adds one ----------
+  // ---------- Photos: the resident's photo, and an interactive before/after comparison slider once the council adds one ----------
 
   function photos() {
     const after = [...s.updates].reverse().find((update) => update.photo && update.status === 'implemented')
       || [...s.updates].reverse().find((update) => update.photo);
     if (s.photo && after) {
-      return el('div', { class: 'before-after' },
+      const stage = el('div', { class: 'ba-slider', style: '--split: 50%' });
+      const range = el('input', {
+        type: 'range',
+        class: 'ba-range',
+        min: '0',
+        max: '100',
+        value: '50',
+        'aria-label': 'Slide left or right to compare Before and After photos',
+      });
+      const setSplit = (pct) => {
+        const clamped = Math.max(0, Math.min(100, Number(pct)));
+        range.value = String(clamped);
+        stage.style.setProperty('--split', `${clamped}%`);
+      };
+      range.addEventListener('input', () => setSplit(range.value));
+
+      stage.append(
+        el('img', { class: 'ba-img ba-after-img', src: after.photo, alt: t('detail.after') }),
+        el('div', { class: 'ba-before-clip' },
+          el('img', { class: 'ba-img ba-before-img', src: s.photo, alt: t('detail.before') })),
+        el('span', { class: 'ba-badge ba-badge-before' }, `⬅ ${t('detail.before')}`),
+        el('span', { class: 'ba-badge ba-badge-after' }, `${t('detail.after')} ➡`),
+        el('div', { class: 'ba-divider', 'aria-hidden': 'true' },
+          el('span', { class: 'ba-handle' }, '⇄')),
+        range
+      );
+
+      const quickBar = el('div', { class: 'ba-quick-bar' },
+        el('button', { type: 'button', class: 'btn btn-sm', onclick: () => setSplit(100) }, `Show ${t('detail.before')}`),
+        el('button', { type: 'button', class: 'btn btn-sm', onclick: () => setSplit(50) }, '50 / 50 Split'),
+        el('button', { type: 'button', class: 'btn btn-sm', onclick: () => setSplit(0) }, `Show ${t('detail.after')}`));
+
+      const sliderWrap = el('div', { class: 'ba-slider-view' }, stage, quickBar);
+      const gridWrap = el('div', { class: 'before-after', hidden: true },
         el('figure', null, photoLink(s.photo, t('detail.before')), el('figcaption', null, t('detail.before'))),
         el('figure', null, photoLink(after.photo, t('detail.after')), el('figcaption', null, t('detail.after'))));
+
+      const btnSlider = el('button', { type: 'button', class: 'btn btn-sm', 'aria-pressed': 'true' }, '⇄ Interactive Slider');
+      const btnGrid = el('button', { type: 'button', class: 'btn btn-sm', 'aria-pressed': 'false' }, '🖼️ Side-by-Side');
+      btnSlider.addEventListener('click', () => {
+        sliderWrap.hidden = false;
+        gridWrap.hidden = true;
+        btnSlider.setAttribute('aria-pressed', 'true');
+        btnGrid.setAttribute('aria-pressed', 'false');
+      });
+      btnGrid.addEventListener('click', () => {
+        sliderWrap.hidden = true;
+        gridWrap.hidden = false;
+        btnSlider.setAttribute('aria-pressed', 'false');
+        btnGrid.setAttribute('aria-pressed', 'true');
+      });
+
+      return el('div', { class: 'ba-compare-box' },
+        el('div', { class: 'ba-compare-head' },
+          el('strong', null, '📸 Before vs. After Work Verification'),
+          el('div', { class: 'ba-view-toggle' }, btnSlider, btnGrid)),
+        sliderWrap,
+        gridWrap);
     }
     if (after) {
       return el('figure', null, photoLink(after.photo, t('detail.councilPhoto')), el('figcaption', null, t('detail.councilPhoto')));
