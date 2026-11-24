@@ -82,6 +82,7 @@ module.exports = function registerAdminApi(app) {
     const filters = app.listFilters(ctx.query);
     const result = db.listSuggestions({
       ...filters,
+      voter: app.voterFrom ? app.voterFrom(ctx) : (ctx.req.headers['x-voter-id'] || ''),
       department: ctx.admin.department || filters.department,
       district: ctx.admin.district || filters.district,
       sort: ctx.query.get('sort') ? filters.sort : 'new',
@@ -104,7 +105,8 @@ module.exports = function registerAdminApi(app) {
 
   route('GET', '/api/admin/suggestions/:code', (ctx) => {
     ownSuggestion(ctx);
-    return db.getSuggestion(app.codeParam(ctx), { admin: true });
+    const voter = app.voterFrom ? app.voterFrom(ctx) : (ctx.req.headers['x-voter-id'] || '');
+    return db.getSuggestion(app.codeParam(ctx), { voter, admin: true });
   }, guarded);
 
   route('PATCH', '/api/admin/suggestions/:code', async (ctx) => {
@@ -125,13 +127,18 @@ module.exports = function registerAdminApi(app) {
     if (status !== row.status || note || photo) {
       db.addUpdate(row.id, status, note, { photo, byName: ctx.admin.name });
     }
+    const rating = Number(body.rating);
+    const voter = (app.voterFrom ? app.voterFrom(ctx) : (ctx.req.headers['x-voter-id'] || '')) || `corp:${ctx.admin.username}`;
+    if (status === 'implemented' && Number.isInteger(rating) && rating >= 1 && rating <= 5) {
+      db.setRating(row.id, voter, rating);
+    }
     if (typeof body.hidden === 'boolean') db.setHidden(row.id, body.hidden);
     if (body.clearReports === true) db.clearReports(row.id);
     if (department && department !== row.department) db.updateSuggestion(row.id, { department });
 
     // An officer who passes a submission to another department can no longer open it.
     const moved = ctx.admin.department && department && department !== ctx.admin.department;
-    return moved ? { moved: true } : db.getSuggestion(row.code, { admin: true });
+    return moved ? { moved: true } : db.getSuggestion(row.code, { voter, admin: true });
   }, guarded);
 
   route('DELETE', '/api/admin/suggestions/:code/photo', (ctx) => {

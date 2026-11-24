@@ -208,8 +208,11 @@ function excerpt(text, max = 180) {
   return flat.length <= max ? flat : `${flat.slice(0, max).replace(/\s+\S*$/, '')}…`;
 }
 
+const myRatingStmt = db.prepare('SELECT rating FROM confirmations WHERE suggestion_id = ? AND voter = ?');
+
 // Shapes a database row for the API. Private details are only ever included for officials.
-function present(row, { full = false, admin = false } = {}) {
+function present(row, { full = false, admin = false, voter = '' } = {}) {
+  const mineRating = voter ? myRatingStmt.get(row.id, voter) : null;
   const out = {
     code: row.code,
     type: row.type,
@@ -234,6 +237,7 @@ function present(row, { full = false, admin = false } = {}) {
       no: row.fixed_no,
       ratingAvg: row.rating_avg ? Number(row.rating_avg) : null,
       ratingCount: row.rating_count || 0,
+      myRating: mineRating && mineRating.rating ? Number(mineRating.rating) : null,
     },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -315,7 +319,7 @@ function listSuggestions(filters = {}) {
     filters.voter || '', ...params, limit, (page - 1) * limit,
   );
   return {
-    items: rows.map((row) => present(row, { admin: filters.includeHidden })),
+    items: rows.map((row) => present(row, { admin: filters.includeHidden, voter: filters.voter || '' })),
     total,
     page,
     pages: Math.max(1, Math.ceil(total / limit)),

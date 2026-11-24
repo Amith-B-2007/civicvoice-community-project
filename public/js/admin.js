@@ -168,7 +168,8 @@
         el('button', { type: 'button', class: 'row-title', onclick: () => openManage(s.code) }, s.title),
         el('span', { class: 'row-sub' },
           `${meta.typeById[s.type].label} · ${category.label} · ${SB.departmentLabel(s.department, meta) || 'No department'}`),
-        el('span', { class: 'badges row-flags' }, flags(s))),
+        el('span', { class: 'badges row-flags' }, flags(s)),
+        s.status === 'implemented' && SB.rateWorkWidget && SB.rateWorkWidget(s, { compact: true, onRate: () => load() })),
       el('td', null, SB.place(s, meta)),
       el('td', { class: 'num' }, s.votes),
       el('td', null, SB.statusBadge(s.status, meta)),
@@ -305,6 +306,7 @@
         previewBox.hidden = false;
         if (status.value === s.status && s.status !== 'implemented') {
           status.value = 'implemented';
+          status.dispatchEvent(new Event('change'));
         }
       } catch (err) {
         photo.value = '';
@@ -315,6 +317,58 @@
     });
     const formError = el('p', { class: 'error', hidden: true });
     const save = el('button', { type: 'submit', class: 'btn btn-primary' }, 'Publish update');
+
+    // Interactive 5-Star Corporator Rating picker inside the completion form (shown when status is "implemented")
+    let selectedRating = (s.fixed && s.fixed.myRating) || 0;
+    const formStarBtns = [1, 2, 3, 4, 5].map((stars) => el('button', {
+      type: 'button',
+      class: 'star-btn',
+      title: `${stars} star${stars > 1 ? 's' : ''}`,
+      onclick: async () => {
+        selectedRating = stars;
+        paintFormStars();
+        if (s.status === 'implemented') {
+          try {
+            s.fixed = await api(`/api/suggestions/${encodeURIComponent(s.code)}/rate`, {
+              method: 'POST',
+              body: { rating: stars },
+            });
+            SB.toast(`Rated Corporator work ${stars} ★!`);
+            renderManage(await adminApi(`/api/admin/suggestions/${s.code}`));
+            load();
+          } catch (err) {
+            fail(err);
+          }
+        }
+      },
+    }, '★'));
+    const formRatingHint = el('p', { class: 'rating-summary' });
+    function paintFormStars() {
+      formStarBtns.forEach((btn, idx) => {
+        btn.classList.toggle('star-active', idx < selectedRating);
+        btn.setAttribute('aria-pressed', String(idx + 1 === selectedRating));
+      });
+      if (s.fixed && s.fixed.ratingCount > 0 && s.fixed.ratingAvg != null) {
+        formRatingHint.textContent = `Current rating: ★ ${Number(s.fixed.ratingAvg).toFixed(1)} / 5 (${s.fixed.ratingCount} rating${s.fixed.ratingCount === 1 ? '' : 's'})`;
+        formRatingHint.hidden = false;
+      } else if (selectedRating > 0) {
+        formRatingHint.textContent = `Selected: ${selectedRating} ★ (will be saved with update)`;
+        formRatingHint.hidden = false;
+      } else {
+        formRatingHint.textContent = 'Click 1 to 5 stars to rate the completed work.';
+        formRatingHint.hidden = false;
+      }
+    }
+    paintFormStars();
+
+    const formRatingField = el('div', { class: 'field rating-box', hidden: status.value !== 'implemented' },
+      el('label', { class: 'rating-label' }, '⭐ Rate Corporator after Work is Completed (1 to 5 Stars):'),
+      el('div', { class: 'star-group', role: 'group', 'aria-label': '5-star Corporator rating' }, formStarBtns),
+      formRatingHint);
+
+    status.addEventListener('change', () => {
+      formRatingField.hidden = status.value !== 'implemented';
+    });
 
     const form = el('form', { class: 'manage-form', novalidate: true },
       el('h3', null, 'Update Status & Upload Completion Photo'),
@@ -328,21 +382,27 @@
         photo,
         el('p', { class: 'hint' }, 'Attach a photo once the work is completed ("Implemented") to show residents the completed result.')),
       previewBox,
+      formRatingField,
       formError,
       el('div', { class: 'form-actions' }, save));
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       formError.hidden = true;
-      if (status.value === s.status && !note.value.trim() && !photo.files[0]) {
-        formError.textContent = 'Change the status, write a reply or add a photo first.';
+      if (status.value === s.status && !note.value.trim() && !photo.files[0] && !selectedRating) {
+        formError.textContent = 'Change the status, write a reply, add a photo, or select a star rating first.';
         formError.hidden = false;
         return;
       }
       save.disabled = true;
       try {
         const image = photo.files[0] ? await SB.shrinkImage(photo.files[0]) : undefined;
-        const updated = await patch({ status: status.value, note: note.value, photo: image });
+        const updated = await patch({
+          status: status.value,
+          note: note.value,
+          photo: image,
+          rating: status.value === 'implemented' && selectedRating ? selectedRating : undefined,
+        });
         SB.toast('Update published.');
         refresh(updated);
       } catch (error) {

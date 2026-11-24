@@ -150,7 +150,7 @@
       el('div', { class: 'fixed-actions' }, yes, no),
       summary,
       el('div', { class: 'rating-box' },
-        el('p', { class: 'rating-label' }, 'Rate the quality of the completed work (1 to 5 stars):'),
+        el('p', { class: 'rating-label' }, '⭐ Rate the Corporator for this Completed Work (1 to 5 stars):'),
         el('div', { class: 'star-group', role: 'group', 'aria-label': '5-star quality rating' }, starButtons),
         ratingSummary));
   }

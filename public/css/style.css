@@ -1541,3 +1541,47 @@ button.kpi:hover { border-color: var(--primary); }
     justify-content: flex-end;
   }
 }
+
+/* ---------- Interactive 5-Star Corporator Rating Bar on Cards & Admin Rows ---------- */
+.corp-rate-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 10px 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+}
+:root[data-theme="dark"] .corp-rate-bar {
+  background: #2b1f06;
+  border-color: #d97706;
+}
+.corp-rate-bar-sm {
+  margin: 8px 0 6px;
+  padding: 6px 10px;
+  gap: 6px 10px;
+}
+.corp-rate-label {
+  font-size: .84rem;
+  font-weight: 700;
+  color: #92400e;
+}
+:root[data-theme="dark"] .corp-rate-label {
+  color: #fde68a;
+}
+.star-btn-sm {
+  width: 1.85rem;
+  height: 1.85rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
+}
+.corp-rate-score {
+  font-size: .82rem;
+  font-weight: 700;
+  color: #b45309;
+}
+:root[data-theme="dark"] .corp-rate-score {
+  color: #fbbf24;
+}

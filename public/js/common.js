@@ -212,6 +212,61 @@
     return btn;
   };
 
+  SB.rateWorkWidget = function (suggestion, { compact = false, onRate } = {}) {
+    if (!suggestion || suggestion.status !== 'implemented') return null;
+    suggestion.fixed = suggestion.fixed || { yes: 0, no: 0, ratingAvg: null, ratingCount: 0, myRating: null };
+
+    const scoreNode = el('span', { class: 'corp-rate-score' });
+    const starBtns = [1, 2, 3, 4, 5].map((stars) => el('button', {
+      type: 'button',
+      class: compact ? 'star-btn star-btn-sm' : 'star-btn',
+      title: `Rate Corporator work ${stars} out of 5 stars`,
+      'aria-label': `Rate Corporator work ${stars} out of 5 stars`,
+      onclick: async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        for (const b of starBtns) b.disabled = true;
+        try {
+          suggestion.fixed = await SB.api(`/api/suggestions/${encodeURIComponent(suggestion.code)}/rate`, {
+            method: 'POST',
+            body: { rating: stars },
+          });
+          paint();
+          SB.toast(`Rated Corporator's completed work ${stars} ★!`);
+          if (typeof onRate === 'function') onRate(suggestion.fixed);
+        } catch (err) {
+          SB.toast(err.message, 'error');
+        } finally {
+          for (const b of starBtns) b.disabled = false;
+        }
+      },
+    }, '★'));
+
+    function paint() {
+      const my = Number(suggestion.fixed.myRating) || 0;
+      const avg = Number(suggestion.fixed.ratingAvg) || 0;
+      const count = Number(suggestion.fixed.ratingCount) || 0;
+      const highlight = my || Math.round(avg);
+      starBtns.forEach((btn, idx) => {
+        btn.classList.toggle('star-active', idx < highlight);
+        btn.setAttribute('aria-pressed', String(idx + 1 === my));
+      });
+      if (count > 0) {
+        scoreNode.textContent = compact
+          ? `${avg.toFixed(1)} / 5 (${count})`
+          : `★ ${avg.toFixed(1)} / 5 average (${count} rating${count === 1 ? '' : 's'})${my ? ` · Your rating: ${my} ★` : ''}`;
+      } else {
+        scoreNode.textContent = compact ? 'Tap ★ to rate' : 'No ratings yet — tap 1 to 5 stars to rate the Corporator';
+      }
+    }
+    paint();
+
+    return el('div', { class: compact ? 'corp-rate-bar corp-rate-bar-sm' : 'corp-rate-bar' },
+      el('span', { class: 'corp-rate-label' }, compact ? '⭐ Rate Corporator:' : '⭐ Rate the Corporator (Completed Work Quality):'),
+      el('div', { class: 'star-group', role: 'group', 'aria-label': 'Rate Corporator 1 to 5 stars' }, starBtns),
+      scoreNode);
+  };
+
   SB.card = function (suggestion, meta) {
     const category = SB.category(suggestion.category, meta);
     return el('article', { class: 'card' },
@@ -225,6 +280,7 @@
           SB.saveButton(suggestion.code, { compact: true })),
         el('h3', { class: 'card-title' }, el('a', { href: SB.link(suggestion.code) }, suggestion.title)),
         el('p', { class: 'card-excerpt' }, suggestion.excerpt),
+        suggestion.status === 'implemented' && SB.rateWorkWidget(suggestion, { compact: true }),
         el('p', { class: 'meta' },
           el('span', null, `${category.icon} ${category.label}`),
           el('span', null, `📍 ${SB.place(suggestion, meta)}`),
