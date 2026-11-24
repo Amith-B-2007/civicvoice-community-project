@@ -165,7 +165,7 @@
     return el('section', { class: 'panel share-panel' },
       el('h2', null, t('detail.share')),
       el('p', { class: 'hint hint-top' }, t('detail.shareHint')),
-      el('p', { class: 'share-row' }, el('span', { class: 'code' }, s.code), button),
+      el('p', { class: 'share-row' }, el('span', { class: 'code' }, s.code), SB.saveButton(s.code, { compact: false }), button),
       el('p', { class: 'report-row' },
         el('button', { type: 'button', class: 'link-button', onclick: () => SB.openReport({ code: s.code }) }, `⚑ ${t('detail.report')}`)));
   }

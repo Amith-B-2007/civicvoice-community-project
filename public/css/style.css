@@ -1407,3 +1407,137 @@ button.kpi:hover { border-color: var(--primary); }
     height: 240px;
   }
 }
+
+/* ---------- Feature 17: My Saved / Tracked Issues Drawer & Bookmark Button ---------- */
+.my-issues-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 5px;
+  margin-left: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.save-btn-sm {
+  margin-left: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s ease, background-color .14s ease, color .14s ease, border-color .14s ease;
+}
+.save-btn-sm:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.save-btn[aria-pressed="true"],
+.save-btn-sm[aria-pressed="true"] {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.my-issues-head-actions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.my-issues-add-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.my-issues-add-form input {
+  flex: 1;
+}
+.my-issues-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.my-issues-summary:empty {
+  display: none;
+}
+.my-issues-pill {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.my-issues-pill strong {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--primary);
+  line-height: 1.1;
+}
+.my-issues-pill span {
+  font-size: .78rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.my-issues-pill-ok strong {
+  color: #168039;
+}
+.my-issues-list {
+  display: grid;
+  gap: 10px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.my-issue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--card-shadow-3d);
+}
+.my-issue-main {
+  min-width: 0;
+  flex: 1;
+}
+.my-issue-title {
+  margin: 6px 0 4px;
+  font-size: 1rem;
+}
+.my-issue-title a {
+  text-decoration: none;
+  color: var(--ink);
+}
+.my-issue-title a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.my-issue-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+@media (max-width: 560px) {
+  .my-issue-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .my-issue-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -177,6 +177,7 @@
         const result = await SB.api(`/api/suggestions/${suggestion.code}/vote`, { method: 'POST', body: {} });
         suggestion.votes = result.votes;
         suggestion.voted = result.voted;
+        if (result.voted) SB.rememberCode(suggestion.code);
         paint();
       } catch (error) {
         SB.toast(error.message, 'error');
@@ -185,6 +186,30 @@
       }
     });
     return button;
+  };
+
+  SB.saveButton = function (code, { compact = true } = {}) {
+    const clean = String(code || '').trim().toUpperCase();
+    const btn = el('button', {
+      type: 'button',
+      class: compact ? 'save-btn save-btn-sm' : 'btn btn-sm save-btn',
+      'data-save-code': clean,
+    });
+    const paint = () => {
+      const saved = SB.hasCode(clean);
+      btn.setAttribute('aria-pressed', String(saved));
+      btn.textContent = saved ? '📌 Saved' : '📌 Save';
+      btn.title = saved ? 'Saved in My Issues (click to remove)' : 'Save to My Issues on this device';
+    };
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const nowSaved = SB.toggleCode(clean);
+      paint();
+      SB.toast(nowSaved ? `Saved ${clean} to 📌 My Issues` : `Removed ${clean} from My Issues`);
+    });
+    paint();
+    return btn;
   };
 
   SB.card = function (suggestion, meta) {
@@ -196,7 +221,8 @@
           SB.typeBadge(suggestion.type, meta),
           SB.statusBadge(suggestion.status, meta),
           suggestion.responded && el('span', { class: 'badge badge-reply' }, t('badge.replied')),
-          suggestion.fixed && suggestion.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(suggestion.fixed.ratingAvg).toFixed(1)} (${suggestion.fixed.ratingCount})`)),
+          suggestion.fixed && suggestion.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(suggestion.fixed.ratingAvg).toFixed(1)} (${suggestion.fixed.ratingCount})`),
+          SB.saveButton(suggestion.code, { compact: true })),
         el('h3', { class: 'card-title' }, el('a', { href: SB.link(suggestion.code) }, suggestion.title)),
         el('p', { class: 'card-excerpt' }, suggestion.excerpt),
         el('p', { class: 'meta' },
@@ -280,9 +306,42 @@
     }
   };
 
-  // Tracking codes submitted from this browser (kept locally so people can find them again).
+  // Tracking codes submitted, upvoted, or bookmarked from this browser (kept locally so people can find them again).
   SB.myCodes = () => (Array.isArray(store('sb_codes')) ? store('sb_codes') : []);
-  SB.rememberCode = (code) => store('sb_codes', [code, ...SB.myCodes().filter((c) => c !== code)].slice(0, 30));
+  SB.hasCode = (code) => SB.myCodes().includes(String(code || '').trim().toUpperCase());
+  SB.syncSaveButtons = function () {
+    const codes = SB.myCodes();
+    const badge = document.getElementById('my-issues-count');
+    if (badge) {
+      badge.textContent = String(codes.length);
+      badge.hidden = codes.length === 0;
+    }
+    for (const btn of document.querySelectorAll('[data-save-code]')) {
+      const saved = codes.includes(btn.getAttribute('data-save-code'));
+      btn.setAttribute('aria-pressed', String(saved));
+      btn.textContent = saved ? '📌 Saved' : '📌 Save';
+    }
+  };
+  SB.rememberCode = (code) => {
+    const clean = String(code || '').trim().toUpperCase();
+    if (!clean) return;
+    store('sb_codes', [clean, ...SB.myCodes().filter((c) => c !== clean)].slice(0, 30));
+    SB.syncSaveButtons();
+  };
+  SB.forgetCode = (code) => {
+    const clean = String(code || '').trim().toUpperCase();
+    store('sb_codes', SB.myCodes().filter((c) => c !== clean));
+    SB.syncSaveButtons();
+  };
+  SB.toggleCode = (code) => {
+    const clean = String(code || '').trim().toUpperCase();
+    if (SB.hasCode(clean)) {
+      SB.forgetCode(clean);
+      return false;
+    }
+    SB.rememberCode(clean);
+    return true;
+  };
 
   SB.debounce = function (fn, ms) {
     let timer;
@@ -601,6 +660,140 @@
   if (helplineBtn) {
     helplineBtn.addEventListener('click', () => SB.openHelplines());
   }
+
+  // ---------- Feature 17: My Saved / Tracked Issues Drawer (LocalStorage) ----------
+  SB.openMyIssues = async function () {
+    const existing = document.getElementById('my-issues-dialog');
+    if (existing) existing.remove();
+
+    const listBox = el('div', { class: 'my-issues-list' }, el('p', { class: 'hint' }, 'Loading your saved issues…'));
+    const summaryBox = el('div', { class: 'my-issues-summary' });
+    const codeInput = el('input', {
+      type: 'text',
+      placeholder: 'Enter tracking code (e.g. SB-4K8M2P)',
+      maxlength: '20',
+      'aria-label': 'Tracking code to add',
+    });
+    const addBtn = el('button', { type: 'submit', class: 'btn btn-primary btn-sm' }, '+ Add Code');
+    const clearBtn = el('button', {
+      type: 'button',
+      class: 'btn btn-sm',
+      onclick: () => {
+        store('sb_codes', []);
+        SB.syncSaveButtons();
+        renderDrawer();
+      },
+    }, 'Clear All');
+
+    const addForm = el('form', { class: 'my-issues-add-form', novalidate: true }, codeInput, addBtn);
+    addForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const raw = codeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!raw) return;
+      const code = raw.startsWith('SB') && raw.length > 4 ? `SB-${raw.slice(2)}` : `SB-${raw}`;
+      addBtn.disabled = true;
+      try {
+        await SB.api(`/api/suggestions/${encodeURIComponent(code)}`);
+        SB.rememberCode(code);
+        codeInput.value = '';
+        SB.toast(`Added ${code} to 📌 My Issues`);
+        await renderDrawer();
+      } catch {
+        SB.toast(`Could not find tracking code ${code}`, 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+
+    async function renderDrawer() {
+      const codes = SB.myCodes();
+      clearBtn.hidden = codes.length === 0;
+      if (!codes.length) {
+        summaryBox.replaceChildren();
+        listBox.replaceChildren(
+          SB.empty(
+            'No saved or tracked issues yet',
+            'Any suggestion you submit, upvote (▲), or click "📌 Save" on will automatically appear here with live status updates.',
+            el('a', { class: 'btn btn-primary btn-sm', href: '/browse' }, 'Browse Suggestions')
+          )
+        );
+        return;
+      }
+      try {
+        const [meta, data] = await Promise.all([
+          SB.meta(),
+          SB.api(`/api/suggestions?sort=new&limit=30&codes=${encodeURIComponent(codes.join(','))}`),
+        ]);
+        const items = data.items || [];
+        const solved = items.filter((i) => i.status === 'implemented').length;
+        const active = items.filter((i) => ['under_review', 'planned', 'in_progress'].includes(i.status)).length;
+
+        summaryBox.replaceChildren(
+          el('div', { class: 'my-issues-pill' }, el('strong', null, String(items.length)), el('span', null, 'Total Saved')),
+          el('div', { class: 'my-issues-pill' }, el('strong', null, String(active)), el('span', null, 'In Progress')),
+          el('div', { class: 'my-issues-pill my-issues-pill-ok' }, el('strong', null, String(solved)), el('span', null, 'Implemented'))
+        );
+
+        if (!items.length) {
+          listBox.replaceChildren(el('p', { class: 'hint' }, 'None of your saved codes match active public items.'));
+          return;
+        }
+
+        listBox.replaceChildren(...items.map((item) => {
+          const cat = SB.category(item.category, meta);
+          return el('article', { class: 'my-issue-item' },
+            el('div', { class: 'my-issue-main' },
+              el('div', { class: 'badges' },
+                el('span', { class: 'code' }, item.code),
+                SB.statusBadge(item.status, meta),
+                item.responded && el('span', { class: 'badge badge-reply' }, t('badge.replied')),
+                item.fixed && item.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(item.fixed.ratingAvg).toFixed(1)}`)),
+              el('h3', { class: 'my-issue-title' }, el('a', { href: SB.link(item.code) }, item.title)),
+              el('p', { class: 'meta' },
+                el('span', null, `${cat.icon} ${cat.label}`),
+                el('span', null, `📍 ${SB.place(item, meta)}`),
+                el('span', null, `▲ ${item.votes}`),
+                el('span', null, SB.timeAgo(item.createdAt)))),
+            el('div', { class: 'my-issue-actions' },
+              el('a', { class: 'btn btn-primary btn-sm', href: SB.link(item.code) }, 'Open →'),
+              el('button', {
+                type: 'button',
+                class: 'btn btn-sm',
+                title: 'Remove from My Issues',
+                onclick: () => {
+                  SB.forgetCode(item.code);
+                  renderDrawer();
+                },
+              }, '✕')));
+        }));
+      } catch (err) {
+        listBox.replaceChildren(el('p', { class: 'error' }, err.message));
+      }
+    }
+
+    const dialog = el('dialog', { id: 'my-issues-dialog', class: 'dialog dialog-wide' },
+      el('div', { class: 'dialog-head' },
+        el('h2', null, '📌 My Saved & Tracked Issues'),
+        el('div', { class: 'my-issues-head-actions' },
+          clearBtn,
+          el('button', { type: 'button', class: 'btn btn-sm', onclick: () => dialog.close() }, t('common.close')))),
+      el('div', { class: 'dialog-body' },
+        el('p', { class: 'hint hint-top' }, 'Stored locally in your browser — no login required. Track issues you submitted, upvoted, or bookmarked:'),
+        addForm,
+        summaryBox,
+        listBox));
+
+    dialog.addEventListener('close', () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
+    renderDrawer();
+  };
+
+  const myIssuesBtn = document.getElementById('my-issues-button');
+  if (myIssuesBtn) {
+    myIssuesBtn.addEventListener('click', () => SB.openMyIssues());
+  }
+  SB.syncSaveButtons();
 
   try {
     const navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
