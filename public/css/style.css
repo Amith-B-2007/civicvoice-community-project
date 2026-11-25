@@ -1585,3 +1585,27 @@ button.kpi:hover { border-color: var(--primary); }
 :root[data-theme="dark"] .corp-rate-score {
   color: #fbbf24;
 }
+
+/* ---------- Multilingual Audio Read-Aloud (Web Speech Synthesis) ---------- */
+.speak-btn-sm {
+  margin-left: auto;
+}
+.speak-btn-sm + .save-btn-sm {
+  margin-left: 0;
+}
+.reply-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.reply-head h2 {
+  margin-bottom: 0;
+}
+.description-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}

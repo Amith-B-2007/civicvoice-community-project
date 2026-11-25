@@ -212,6 +212,59 @@
     return btn;
   };
 
+  // ---------- Audio Read-Aloud (Web Speech Synthesis in English, Kannada & Hindi) ----------
+  let activeSpeechBtn = null;
+  SB.speakButton = function (textOrFn, { compact = true, label = 'Listen' } = {}) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+    const btn = el('button', {
+      type: 'button',
+      class: compact ? 'save-btn-sm speak-btn-sm' : 'btn btn-sm speak-btn',
+      'aria-pressed': 'false',
+      title: `Read aloud in ${SB.lang === 'kn' ? 'Kannada' : SB.lang === 'hi' ? 'Hindi' : 'English'}`,
+    }, `🔊 ${label}`);
+
+    const reset = () => {
+      btn.setAttribute('aria-pressed', 'false');
+      btn.textContent = `🔊 ${label}`;
+      if (activeSpeechBtn === btn) activeSpeechBtn = null;
+    };
+
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const synth = window.speechSynthesis;
+      if (activeSpeechBtn === btn && synth.speaking) {
+        synth.cancel();
+        reset();
+        return;
+      }
+      synth.cancel();
+      if (activeSpeechBtn) {
+        activeSpeechBtn.setAttribute('aria-pressed', 'false');
+        activeSpeechBtn.textContent = `🔊 ${activeSpeechBtn.dataset.label || 'Listen'}`;
+      }
+      btn.dataset.label = label;
+      const text = typeof textOrFn === 'function' ? textOrFn() : String(textOrFn || '');
+      if (!text.trim()) return;
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = SB.locale;
+      const voices = synth.getVoices ? synth.getVoices() : [];
+      const langPrefix = SB.lang.toLowerCase();
+      const match = voices.find((v) => v.lang && v.lang.toLowerCase() === SB.locale.toLowerCase())
+        || voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(langPrefix));
+      if (match) utter.voice = match;
+
+      activeSpeechBtn = btn;
+      btn.setAttribute('aria-pressed', 'true');
+      btn.textContent = '⏹ Stop';
+      utter.onend = reset;
+      utter.onerror = reset;
+      synth.speak(utter);
+    });
+    return btn;
+  };
+
   SB.rateWorkWidget = function (suggestion, { compact = false, onRate } = {}) {
     if (!suggestion || suggestion.status !== 'implemented') return null;
     suggestion.fixed = suggestion.fixed || { yes: 0, no: 0, ratingAvg: null, ratingCount: 0, myRating: null };
@@ -277,6 +330,7 @@
           SB.statusBadge(suggestion.status, meta),
           suggestion.responded && el('span', { class: 'badge badge-reply' }, t('badge.replied')),
           suggestion.fixed && suggestion.fixed.ratingCount > 0 && el('span', { class: 'badge badge-rating' }, `★ ${Number(suggestion.fixed.ratingAvg).toFixed(1)} (${suggestion.fixed.ratingCount})`),
+          SB.speakButton(() => `${suggestion.title}. ${suggestion.excerpt || ''}`, { compact: true }),
           SB.saveButton(suggestion.code, { compact: true })),
         el('h3', { class: 'card-title' }, el('a', { href: SB.link(suggestion.code) }, suggestion.title)),
         el('p', { class: 'card-excerpt' }, suggestion.excerpt),
