@@ -410,6 +410,43 @@ function similar(text) {
   );
 }
 
+// Finds existing geo-pinned issues within radiusMeters of a GPS coordinate (Haversine formula).
+function nearby(lat, lng, radiusMeters = 300) {
+  const latNum = Number(lat);
+  const lngNum = Number(lng);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return [];
+  const delta = 0.005; // ~550m bounding box filter
+  const candidates = all(
+    `SELECT s.code, s.title, s.category, s.status, s.lat, s.lng,
+            (SELECT COUNT(*) FROM votes v WHERE v.suggestion_id = s.id) AS votes
+     FROM suggestions s
+     WHERE s.hidden = 0 AND s.lat IS NOT NULL AND s.lng IS NOT NULL
+       AND s.lat BETWEEN ? AND ? AND s.lng BETWEEN ? AND ?`,
+    latNum - delta, latNum + delta, lngNum - delta, lngNum + delta,
+  );
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const R = 6371000;
+  return candidates
+    .map((row) => {
+      const dLat = toRad(row.lat - latNum);
+      const dLng = toRad(row.lng - lngNum);
+      const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRad(latNum)) * Math.cos(toRad(row.lat)) * Math.sin(dLng / 2) ** 2;
+      const distanceMeters = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+      return {
+        code: row.code,
+        title: row.title,
+        category: row.category,
+        status: row.status,
+        votes: row.votes,
+        distanceMeters,
+      };
+    })
+    .filter((item) => item.distanceMeters <= radiusMeters)
+    .sort((a, b) => a.distanceMeters - b.distanceMeters || b.votes - a.votes)
+    .slice(0, 4);
+}
+
 // ---------- Votes, comments, official updates ----------
 
 function toggleVote(suggestionId, voter, at = now()) {
@@ -795,7 +832,7 @@ const purgeSessions = () => run('DELETE FROM sessions WHERE expires_at < ?', Dat
 module.exports = {
   DATA_DIR, CODE_RE, configure,
   createSuggestion, listSuggestions, findByCode, findByTitle, getSuggestion, updateSuggestion,
-  backfillDepartment, similar,
+  backfillDepartment, similar, nearby,
   toggleVote, addComment, findComment, deleteComment, addUpdate, setHidden,
   removeSuggestionPhoto, findUpdate, removeUpdatePhoto,
   setConfirmation, setRating, addReport, clearReports,

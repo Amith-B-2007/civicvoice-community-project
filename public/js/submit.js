@@ -148,6 +148,31 @@
   const pinRemove = document.getElementById('pin-remove');
   const pinStatus = document.getElementById('pin-status');
   const gpsStatus = document.getElementById('gps-status');
+  const nearbyBox = el('div', { class: 'similar nearby-box', hidden: true });
+  pinStatus.after(nearbyBox);
+
+  const checkNearbyPins = SB.debounce(async (lat, lng) => {
+    try {
+      const { items } = await api(`/api/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&radius=300`);
+      if (!marker || !items || !items.length) {
+        nearbyBox.hidden = true;
+        return;
+      }
+      nearbyBox.hidden = false;
+      nearbyBox.replaceChildren(
+        el('p', { class: 'similar-title' }, '📍 Nearby Issue Detected within 300m of your GPS Pin — Upvote existing issue instead of duplicating:'),
+        el('ul', null, items.map((item) => el('li', { class: 'nearby-item' },
+          el('span', { class: 'badge badge-distance' }, `${item.distanceMeters}m away`),
+          ' ',
+          el('a', { href: SB.link(item.code), target: '_blank', rel: 'noopener' }, item.title),
+          el('span', { class: 'similar-meta' }, ` (${item.code} · ▲ ${item.votes})`),
+          ' ',
+          SB.statusBadge(item.status, meta))))
+      );
+    } catch {
+      nearbyBox.hidden = true;
+    }
+  }, 300);
   const gpsMessage = (text) => {
     gpsStatus.textContent = text || '';
     gpsStatus.hidden = !text;
@@ -208,6 +233,7 @@
     pinStatus.classList.add('pin-set');
     pinRemove.hidden = false;
     lookupAddress(lat, lng);
+    checkNearbyPins(lat, lng);
   }
 
   function clearAccuracy() {
@@ -245,6 +271,7 @@
     if (marker) marker.remove();
     marker = null;
     pinRemove.hidden = true;
+    nearbyBox.hidden = true;
     gpsMessage('');
     pinStatus.textContent = t('submit.pinNone');
     pinStatus.classList.remove('pin-set');

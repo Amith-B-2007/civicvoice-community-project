@@ -74,6 +74,10 @@ module.exports = function registerPublicApi(app) {
 
   route('GET', '/api/similar', (ctx) => ({ items: db.similar((ctx.query.get('q') || '').slice(0, 120)) }));
 
+  route('GET', '/api/nearby', (ctx) => ({
+    items: db.nearby(ctx.query.get('lat'), ctx.query.get('lng'), Number(ctx.query.get('radius')) || 300),
+  }));
+
   route('GET', '/api/stats', () => db.stats());
 
   route('GET', '/api/polls', (ctx) => ({ items: db.listPolls(ctx.voter) }));

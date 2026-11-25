@@ -1752,3 +1752,32 @@ button.kpi:hover { border-color: var(--primary); }
   background: #062c1e;
   color: #6ee7b7;
 }
+
+/* ---------- Nearby GPS Duplicate Issue Detector on Map Pin ---------- */
+.nearby-box {
+  margin-top: 10px;
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+:root[data-theme="dark"] .nearby-box {
+  background: #2b1f06;
+  border-color: #d97706;
+}
+.nearby-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.badge-distance {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-weight: 800;
+}
+:root[data-theme="dark"] .badge-distance {
+  background: #451a03;
+  color: #fde68a;
+  border-color: #d97706;
+}
