@@ -24,7 +24,84 @@
   const photoLink = (src, alt, className = 'detail-photo') => el('a', { href: src, target: '_blank', rel: 'noopener' },
     el('img', { class: className, src, alt }));
 
-  // ---------- Progress and official updates ----------
+  // ---------- Progress, Live 7-Day SLA Countdown & Official Updates ----------
+
+  let slaTimer = null;
+  function slaBanner() {
+    clearInterval(slaTimer);
+    const slaDays = Number(meta.overdueDays) || 7;
+    const deadlineMs = new Date(s.createdAt).getTime() + slaDays * 86400000;
+    const clockNode = el('strong', { class: 'sla-clock' });
+    const box = el('div', { class: 'sla-live-banner' });
+
+    function tick() {
+      if (s.status === 'implemented') {
+        box.className = 'sla-live-banner sla-done';
+        box.replaceChildren(
+          el('span', { class: 'sla-dot', 'aria-hidden': 'true' }),
+          el('div', null,
+            el('strong', null, '✅ Work Completed & Verified'),
+            el('span', null, `Marked Implemented · Last updated ${SB.timeAgo(s.updatedAt || s.createdAt)}`)));
+        clearInterval(slaTimer);
+        return;
+      }
+      if (s.status === 'not_feasible') {
+        box.className = 'sla-live-banner sla-closed';
+        box.replaceChildren(
+          el('div', null,
+            el('strong', null, '⚪ Closed (Not Feasible)'),
+            el('span', null, 'Corporation reviewed and closed this request.')));
+        clearInterval(slaTimer);
+        return;
+      }
+      if (s.status !== 'submitted') {
+        box.className = 'sla-live-banner sla-active';
+        box.replaceChildren(
+          el('span', { class: 'sla-dot', 'aria-hidden': 'true' }),
+          el('div', null,
+            el('strong', null, `🟢 Live Status: ${statusLabel(s.status)}`),
+            el('span', null, `Initial ${slaDays}-day SLA met · Active with ${SB.departmentLabel(s.department, meta) || 'District Corporation'}`)));
+        clearInterval(slaTimer);
+        return;
+      }
+
+      const diff = deadlineMs - Date.now();
+      const abs = Math.abs(diff);
+      const d = Math.floor(abs / 86400000);
+      const h = Math.floor((abs % 86400000) / 3600000);
+      const m = Math.floor((abs % 3600000) / 60000);
+      const sec = Math.floor((abs % 60000) / 1000);
+      const pad = (n) => String(n).padStart(2, '0');
+
+      if (diff >= 0) {
+        box.className = 'sla-live-banner sla-pending';
+        clockNode.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+        if (!box.firstChild) {
+          box.replaceChildren(
+            el('span', { class: 'sla-dot', 'aria-hidden': 'true' }),
+            el('div', null,
+              el('span', { class: 'sla-title' }, `⏱️ ${slaDays}-Day SLA Countdown for Corporation Review:`),
+              clockNode));
+        }
+      } else {
+        box.className = 'sla-live-banner sla-overdue';
+        clockNode.textContent = `Overdue by ${d}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+        if (!box.firstChild || !box.classList.contains('sla-overdue')) {
+          box.replaceChildren(
+            el('span', { class: 'sla-dot', 'aria-hidden': 'true' }),
+            el('div', null,
+              el('span', { class: 'sla-title' }, `🚨 ${slaDays}-Day SLA Breached — Escalated to District Corporation:`),
+              clockNode));
+        }
+      }
+    }
+
+    tick();
+    if (s.status === 'submitted') {
+      slaTimer = setInterval(tick, 1000);
+    }
+    return box;
+  }
 
   function progressPanel() {
     const current = STAGES.indexOf(s.status);
@@ -43,7 +120,10 @@
     })));
 
     return el('section', { class: 'panel progress-panel' },
-      el('h2', null, t('detail.progress')),
+      el('div', { class: 'progress-head' },
+        el('h2', null, t('detail.progress')),
+        el('span', { class: 'live-sync-pill', title: 'Automatically syncs live when Corporation updates status' }, '🟢 Live Sync')),
+      slaBanner(),
       stepper,
       s.department && el('p', { class: 'handled-by' },
         el('span', null, t('detail.handledBy')), el('strong', null, SB.departmentLabel(s.department, meta))),
@@ -301,39 +381,69 @@
     return s.photo ? photoLink(s.photo, t('detail.photoAlt')) : null;
   }
 
-  // ---------- Page ----------
+  // ---------- Page & Real-Time Auto-Refresh ----------
 
-  const category = SB.category(s.category, meta);
-  const reply = [...s.updates].reverse().find((update) => update.note);
-  const place = [s.location, s.ward && SB.ward(s.ward), SB.place(s, meta)].filter(Boolean).join(', ');
+  function renderPage() {
+    const category = SB.category(s.category, meta);
+    const reply = [...s.updates].reverse().find((update) => update.note);
+    const place = [s.location, s.ward && SB.ward(s.ward), SB.place(s, meta)].filter(Boolean).join(', ');
 
-  root.replaceChildren(
-    el('p', { class: 'crumbs' }, el('a', { href: '/browse' }, t('detail.back'))),
-    el('div', { class: 'detail-grid' },
-      el('div', { class: 'detail-main' },
-        el('header', { class: 'detail-head' },
-          SB.voteButton(s, { large: true }),
-          el('div', null,
-            el('div', { class: 'badges' },
-              SB.typeBadge(s.type, meta), SB.statusBadge(s.status, meta), el('span', { class: 'code' }, s.code)),
-            el('h1', null, s.title),
-            el('p', { class: 'meta' },
-              el('span', null, `${category.icon} ${category.label}`),
-              el('span', null, place),
-              el('span', null, t('detail.by', { name: s.author || t('common.anonymous') })),
-              el('span', null, SB.formatDate(s.createdAt))))),
-        reply && el('section', { class: 'reply' },
-          el('div', { class: 'reply-head' },
-            el('h2', null, t('detail.reply', { body: SB.departmentLabel(s.department, meta) || meta.bodyName })),
-            SB.speakButton(() => reply.note, { compact: false, label: 'Listen to Reply' })),
-          el('p', { class: 'prose' }, reply.note),
-          el('p', { class: 'hint' }, SB.formatDate(reply.createdAt))),
-        fixedPanel(),
-        el('section', { class: 'panel description-panel' },
-          el('div', { class: 'description-tools' },
-            SB.speakButton(() => `${s.title}. ${s.description}`, { compact: false, label: 'Read Issue Aloud' })),
-          el('p', { class: 'prose' }, s.description),
-          photos()),
-        commentsSection()),
-      el('aside', { class: 'detail-side' }, progressPanel(), locationPanel(), sharePanel())));
+    root.replaceChildren(
+      el('p', { class: 'crumbs' }, el('a', { href: '/browse' }, t('detail.back'))),
+      el('div', { class: 'detail-grid' },
+        el('div', { class: 'detail-main' },
+          el('header', { class: 'detail-head' },
+            SB.voteButton(s, { large: true }),
+            el('div', null,
+              el('div', { class: 'badges' },
+                SB.typeBadge(s.type, meta), SB.statusBadge(s.status, meta), el('span', { class: 'code' }, s.code)),
+              el('h1', null, s.title),
+              el('p', { class: 'meta' },
+                el('span', null, `${category.icon} ${category.label}`),
+                el('span', null, place),
+                el('span', null, t('detail.by', { name: s.author || t('common.anonymous') })),
+                el('span', null, SB.formatDate(s.createdAt))))),
+          reply && el('section', { class: 'reply' },
+            el('div', { class: 'reply-head' },
+              el('h2', null, t('detail.reply', { body: SB.departmentLabel(s.department, meta) || meta.bodyName })),
+              SB.speakButton(() => reply.note, { compact: false, label: 'Listen to Reply' })),
+            el('p', { class: 'prose' }, reply.note),
+            el('p', { class: 'hint' }, SB.formatDate(reply.createdAt))),
+          fixedPanel(),
+          el('section', { class: 'panel description-panel' },
+            el('div', { class: 'description-tools' },
+              SB.speakButton(() => `${s.title}. ${s.description}`, { compact: false, label: 'Read Issue Aloud' })),
+            el('p', { class: 'prose' }, s.description),
+            photos()),
+          commentsSection()),
+        el('aside', { class: 'detail-side' }, progressPanel(), locationPanel(), sharePanel())));
+  }
+
+  renderPage();
+
+  async function syncSuggestionLive() {
+    if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+    try {
+      const fresh = await api(`/api/suggestions/${encodeURIComponent(s.code)}`);
+      const statusChanged = fresh.status !== s.status;
+      const updatesChanged = fresh.updates.length !== s.updates.length;
+      const votesChanged = fresh.votes !== s.votes;
+      const ratingChanged = (fresh.fixed && fresh.fixed.ratingCount) !== (s.fixed && s.fixed.ratingCount);
+      if (statusChanged || updatesChanged || votesChanged || ratingChanged) {
+        const oldStatus = s.status;
+        s = fresh;
+        renderPage();
+        if (statusChanged && oldStatus) {
+          SB.toast(`🟢 Live Update: Corporator changed status to "${statusLabel(s.status)}"`);
+        }
+      }
+    } catch {}
+  }
+
+  if (SB.onLive) {
+    SB.onLive((ev) => {
+      if (ev && ev.code === s.code) syncSuggestionLive();
+    });
+  }
+  setInterval(syncSuggestionLive, 10000);
 })();

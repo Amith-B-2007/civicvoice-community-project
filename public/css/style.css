@@ -1609,3 +1609,146 @@ button.kpi:hover { border-color: var(--primary); }
   justify-content: flex-end;
   margin-bottom: 10px;
 }
+
+/* ---------- Live 7-Day SLA Countdown Banner & Real-Time Civic Activity Ticker ---------- */
+.live-ticker {
+  background: #141414;
+  color: #f5f5f5;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  padding: 7px 0;
+  font-size: .84rem;
+}
+.live-ticker-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+.live-dot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, .2);
+  border: 1px solid #22c55e;
+  color: #4ade80;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.live-dot,
+.sla-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, .7);
+  animation: pulse-live 1.8s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-live {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .7); }
+  70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.live-ticker-content {
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live-ticker-link {
+  color: #f5f5f5;
+  text-decoration: none;
+}
+.live-ticker-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+.live-ticker-link strong {
+  color: #fbbf24;
+}
+.live-ticker-meta {
+  font-style: normal;
+  color: #a3a3a3;
+}
+
+.progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.progress-head h2 {
+  margin-bottom: 0;
+}
+.live-sync-pill {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, .12);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, .35);
+}
+:root[data-theme="dark"] .live-sync-pill {
+  color: #4ade80;
+}
+.sla-live-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-size: .86rem;
+}
+.sla-live-banner > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sla-clock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.sla-pending {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+.sla-pending .sla-dot {
+  background: #f59e0b;
+}
+:root[data-theme="dark"] .sla-pending {
+  background: #2b1f06;
+  color: #fde68a;
+}
+.sla-overdue {
+  background: var(--red-bg);
+  border-color: var(--primary);
+  color: var(--red-fg);
+}
+.sla-overdue .sla-dot {
+  background: var(--primary);
+}
+.sla-done,
+.sla-active {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+}
+:root[data-theme="dark"] .sla-done,
+:root[data-theme="dark"] .sla-active {
+  background: #062c1e;
+  color: #6ee7b7;
+}

@@ -179,6 +179,7 @@
         suggestion.voted = result.voted;
         if (result.voted) SB.rememberCode(suggestion.code);
         paint();
+        if (SB.emitLive) SB.emitLive({ type: 'vote', code: suggestion.code, votes: suggestion.votes, title: suggestion.title });
       } catch (error) {
         SB.toast(error.message, 'error');
       } finally {
@@ -286,6 +287,7 @@
           });
           paint();
           SB.toast(`Rated Corporator's completed work ${stars} ★!`);
+          if (SB.emitLive) SB.emitLive({ type: 'rate', code: suggestion.code, rating: stars, title: suggestion.title });
           if (typeof onRate === 'function') onRate(suggestion.fixed);
         } catch (err) {
           SB.toast(err.message, 'error');
@@ -904,6 +906,114 @@
     myIssuesBtn.addEventListener('click', () => SB.openMyIssues());
   }
   SB.syncSaveButtons();
+
+  // ---------- Real-Time Cross-Tab Sync & Live Civic Activity Ticker ----------
+  const liveChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('civicvoice_live') : null;
+  const liveListeners = new Set();
+  SB.onLive = (fn) => {
+    liveListeners.add(fn);
+    return () => liveListeners.delete(fn);
+  };
+  SB.emitLive = (payload) => {
+    try {
+      if (liveChannel) liveChannel.postMessage(payload);
+    } catch {}
+    for (const fn of liveListeners) {
+      try { fn(payload); } catch {}
+    }
+  };
+  if (liveChannel) {
+    liveChannel.addEventListener('message', (event) => {
+      const data = event.data || {};
+      if (data.type === 'status' && data.code && SB.hasCode(data.code)) {
+        SB.toast(`🔔 Live Update on ${data.code}: Status is now "${data.statusLabel || data.status}"`);
+      }
+      for (const fn of liveListeners) {
+        try { fn(data); } catch {}
+      }
+    });
+  }
+
+  (async function initLiveTicker() {
+    const tickerBar = document.getElementById('live-ticker');
+    const tickerContent = document.getElementById('live-ticker-content');
+    if (!tickerBar || !tickerContent) return;
+
+    let items = [];
+    let index = 0;
+
+    function showSlide(entry) {
+      if (!entry) return;
+      tickerContent.replaceChildren(
+        el('a', { class: 'live-ticker-link', href: entry.href || '/browse' },
+          el('strong', null, entry.tag),
+          ' ',
+          el('span', null, entry.text),
+          entry.meta && el('em', { class: 'live-ticker-meta' }, ` · ${entry.meta}`))
+      );
+    }
+
+    async function refreshFeed() {
+      try {
+        const [meta, recent, notices] = await Promise.all([
+          SB.meta(),
+          SB.api('/api/suggestions?sort=new&limit=6'),
+          SB.api('/api/notices?limit=2'),
+        ]);
+        const next = [];
+        for (const s of (recent.items || [])) {
+          const statusObj = meta.statusById[s.status] || { label: s.status };
+          const place = SB.place(s, meta);
+          const icon = s.status === 'implemented' ? '✅' : s.status === 'in_progress' ? '🔧' : '📍';
+          next.push({
+            tag: `${icon} [${statusObj.label}]`,
+            text: `${s.title} (${s.code})`,
+            meta: `${place} · ▲ ${s.votes} · ${SB.timeAgo(s.updatedAt || s.createdAt)}`,
+            href: SB.link(s.code),
+          });
+        }
+        for (const n of (notices.items || [])) {
+          next.push({
+            tag: '📢 [Official Notice]',
+            text: n.title,
+            meta: SB.formatDate(n.createdAt),
+            href: `/notices#notice-${n.id}`,
+          });
+        }
+        if (next.length) {
+          items = next;
+          tickerBar.hidden = false;
+          showSlide(items[index % items.length]);
+        }
+      } catch {}
+    }
+
+    SB.onLive((ev) => {
+      if (ev && ev.code) {
+        const msg = ev.type === 'status'
+          ? { tag: `🔔 [Just Updated → ${ev.statusLabel || ev.status}]`, text: `${ev.title || ev.code} (${ev.code})`, meta: 'Just now', href: SB.link(ev.code) }
+          : ev.type === 'vote'
+            ? { tag: '🔺 [Live Upvote]', text: `${ev.title || ev.code} (${ev.code})`, meta: `▲ ${ev.votes} votes · Just now`, href: SB.link(ev.code) }
+            : ev.type === 'rate'
+              ? { tag: `⭐ [New ${ev.rating}★ Rating]`, text: `${ev.title || ev.code} (${ev.code})`, meta: 'Just now', href: SB.link(ev.code) }
+              : null;
+        if (msg) {
+          items.unshift(msg);
+          index = 0;
+          tickerBar.hidden = false;
+          showSlide(msg);
+        }
+      }
+    });
+
+    await refreshFeed();
+    setInterval(() => {
+      if (!items.length) return;
+      index = (index + 1) % items.length;
+      showSlide(items[index]);
+    }, 5500);
+    setInterval(refreshFeed, 25000);
+  })();
 
   try {
     const navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];

@@ -403,6 +403,10 @@
           photo: image,
           rating: status.value === 'implemented' && selectedRating ? selectedRating : undefined,
         });
+        if (SB.emitLive) {
+          const stObj = meta.statusById[status.value] || { label: status.value };
+          SB.emitLive({ type: 'status', code: s.code, status: status.value, statusLabel: stObj.label, title: s.title });
+        }
         SB.toast('Update published.');
         refresh(updated);
       } catch (error) {
